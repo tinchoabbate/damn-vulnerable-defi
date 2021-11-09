@@ -50,7 +50,7 @@ contract ClimberTimelock is AccessControl {
 
     function getOperationState(bytes32 id) public view returns (OperationState) {
         Operation memory op = operations[id];
-        
+
         if(op.executed) {
             return OperationState.Executed;
         } else if(op.readyAtTimestamp >= block.timestamp) {
@@ -83,7 +83,7 @@ contract ClimberTimelock is AccessControl {
 
         bytes32 id = getOperationId(targets, values, dataElements, salt);
         require(getOperationState(id) == OperationState.Unknown, "Operation already known");
-        
+
         operations[id].readyAtTimestamp = uint64(block.timestamp) + delay;
         operations[id].known = true;
     }
@@ -104,7 +104,7 @@ contract ClimberTimelock is AccessControl {
         for (uint8 i = 0; i < targets.length; i++) {
             targets[i].functionCallWithValue(dataElements[i], values[i]);
         }
-        
+
         require(getOperationState(id) == OperationState.ReadyForExecution);
         operations[id].executed = true;
     }

@@ -33,7 +33,7 @@ contract NaiveReceiverLenderPool is ReentrancyGuard {
             ),
             borrowAmount
         );
-        
+
         require(
             address(this).balance >= balanceBefore + FIXED_FEE,
             "Flash loan hasn't been paid back"

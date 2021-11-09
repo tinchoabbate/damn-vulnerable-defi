@@ -31,21 +31,21 @@ contract FreeRiderBuyer is ReentrancyGuard, IERC721Receiver {
         address,
         uint256 _tokenId,
         bytes memory
-    ) 
+    )
         external
         override
         nonReentrant
-        returns (bytes4) 
+        returns (bytes4)
     {
         require(msg.sender == address(nft));
         require(tx.origin == partner);
         require(_tokenId >= 0 && _tokenId <= 5);
         require(nft.ownerOf(_tokenId) == address(this));
-        
+
         received++;
-        if(received == 6) {            
+        if(received == 6) {
             payable(partner).sendValue(JOB_PAYOUT);
-        }            
+        }
 
         return IERC721Receiver.onERC721Received.selector;
     }

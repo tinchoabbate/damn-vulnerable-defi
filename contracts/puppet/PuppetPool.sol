@@ -16,7 +16,7 @@ contract PuppetPool is ReentrancyGuard {
     mapping(address => uint256) public deposits;
     address public immutable uniswapPair;
     DamnValuableToken public immutable token;
-    
+
     event Borrowed(address indexed account, uint256 depositRequired, uint256 borrowAmount);
 
     constructor (address tokenAddress, address uniswapPairAddress) {
@@ -27,9 +27,9 @@ contract PuppetPool is ReentrancyGuard {
     // Allows borrowing `borrowAmount` of tokens by first depositing two times their value in ETH
     function borrow(uint256 borrowAmount) public payable nonReentrant {
         uint256 depositRequired = calculateDepositRequired(borrowAmount);
-        
+
         require(msg.value >= depositRequired, "Not depositing enough collateral");
-        
+
         if (msg.value > depositRequired) {
             payable(msg.sender).sendValue(msg.value - depositRequired);
         }

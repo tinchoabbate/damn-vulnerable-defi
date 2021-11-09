@@ -21,14 +21,14 @@ contract FreeRiderNFTMarketplace is ReentrancyGuard {
 
     event NFTOffered(address indexed offerer, uint256 tokenId, uint256 price);
     event NFTBought(address indexed buyer, uint256 tokenId, uint256 price);
-    
+
     constructor(uint8 amountToMint) payable {
         require(amountToMint < 256, "Cannot mint that many tokens");
         token = new DamnValuableNFT();
 
         for(uint8 i = 0; i < amountToMint; i++) {
             token.safeMint(msg.sender);
-        }        
+        }
     }
 
     function offerMany(uint256[] calldata tokenIds, uint256[] calldata prices) external nonReentrant {
@@ -65,7 +65,7 @@ contract FreeRiderNFTMarketplace is ReentrancyGuard {
         }
     }
 
-    function _buyOne(uint256 tokenId) private {       
+    function _buyOne(uint256 tokenId) private {
         uint256 priceToPay = offers[tokenId];
         require(priceToPay > 0, "Token is not being offered");
 
@@ -80,7 +80,7 @@ contract FreeRiderNFTMarketplace is ReentrancyGuard {
         payable(token.ownerOf(tokenId)).sendValue(priceToPay);
 
         emit NFTBought(msg.sender, tokenId, priceToPay);
-    }    
+    }
 
     receive() external payable {}
 }

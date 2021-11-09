@@ -27,7 +27,7 @@ contract FlashLoanerPool is ReentrancyGuard {
         require(amount <= balanceBefore, "Not enough token balance");
 
         require(msg.sender.isContract(), "Borrower must be a deployed contract");
-        
+
         liquidityToken.transfer(msg.sender, amount);
 
         msg.sender.functionCall(

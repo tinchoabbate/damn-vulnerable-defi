@@ -59,23 +59,23 @@ describe('Compromised challenge', function () {
         this.nftToken = await DamnValuableNFTFactory.attach(await this.exchange.token());
     });
 
-    it('Exploit', async function () {        
+    it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
     });
 
     after(async function () {
         /** SUCCESS CONDITIONS */
-        
+
         // Exchange must have lost all ETH
         expect(
             await ethers.provider.getBalance(this.exchange.address)
         ).to.be.eq('0');
-        
+
         // Attacker's ETH balance must have significantly increased
         expect(
             await ethers.provider.getBalance(attacker.address)
         ).to.be.gt(EXCHANGE_INITIAL_ETH_BALANCE);
-        
+
         // Attacker must not own any NFT
         expect(
             await this.nftToken.balanceOf(attacker.address)

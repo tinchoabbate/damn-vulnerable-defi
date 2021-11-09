@@ -38,11 +38,11 @@ contract UnstoppableLender is ReentrancyGuard {
 
         // Ensured by the protocol via the `depositTokens` function
         assert(poolBalance == balanceBefore);
-        
+
         damnValuableToken.transfer(msg.sender, borrowAmount);
-        
+
         IReceiver(msg.sender).receiveTokens(address(damnValuableToken), borrowAmount);
-        
+
         uint256 balanceAfter = damnValuableToken.balanceOf(address(this));
         require(balanceAfter >= balanceBefore, "Flash loan hasn't been paid back");
     }

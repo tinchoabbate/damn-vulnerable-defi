@@ -21,9 +21,9 @@ contract PuppetV2Pool {
     address private _uniswapFactory;
     IERC20 private _token;
     IERC20 private _weth;
-    
+
     mapping(address => uint256) public deposits;
-        
+
     event Borrowed(address indexed borrower, uint256 depositRequired, uint256 borrowAmount, uint256 timestamp);
 
     constructor (
@@ -48,7 +48,7 @@ contract PuppetV2Pool {
 
         // Calculate how much WETH the user must deposit
         uint256 depositOfWETHRequired = calculateDepositOfWETHRequired(borrowAmount);
-        
+
         // Take the WETH
         _weth.transferFrom(msg.sender, address(this), depositOfWETHRequired);
 

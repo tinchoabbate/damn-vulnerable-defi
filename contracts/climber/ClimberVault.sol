@@ -46,7 +46,7 @@ contract ClimberVault is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     function withdraw(address tokenAddress, address recipient, uint256 amount) external onlyOwner {
         require(amount <= WITHDRAWAL_LIMIT, "Withdrawing too much");
         require(block.timestamp > _lastWithdrawalTimestamp + WAITING_PERIOD, "Try later");
-        
+
         _setLastWithdrawal(block.timestamp);
 
         IERC20 token = IERC20(tokenAddress);

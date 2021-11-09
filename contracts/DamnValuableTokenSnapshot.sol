@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Snapshot.sol";
  * @author Damn Vulnerable DeFi (https://damnvulnerabledefi.xyz)
  */
 contract DamnValuableTokenSnapshot is ERC20Snapshot {
-    
+
     uint256 private lastSnapshotId;
 
     constructor(uint256 initialSupply) ERC20("DamnValuableToken", "DVT") {

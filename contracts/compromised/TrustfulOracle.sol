@@ -51,7 +51,7 @@ contract TrustfulOracle is AccessControlEnumerable {
         address[] memory sources,
         string[] memory symbols,
         uint256[] memory prices
-    ) 
+    )
         public
         onlyInitializer
     {
@@ -119,7 +119,7 @@ contract TrustfulOracle is AccessControlEnumerable {
                     arrayOfNumbers[j] = tmp;
                 }
             }
-        }        
+        }
         return arrayOfNumbers;
     }
 }

@@ -29,10 +29,9 @@ contract SideEntranceLenderPool {
     function flashLoan(uint256 amount) external {
         uint256 balanceBefore = address(this).balance;
         require(balanceBefore >= amount, "Not enough ETH in balance");
-        
+
         IFlashLoanEtherReceiver(msg.sender).execute{value: amount}();
 
-        require(address(this).balance >= balanceBefore, "Flash loan hasn't been paid back");        
+        require(address(this).balance >= balanceBefore, "Flash loan hasn't been paid back");
     }
 }
- 
