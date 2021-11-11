@@ -7,10 +7,10 @@ import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 /**
- * @title TrusterLenderPool
+ * @title TrustooooooorLenderPool
  * @author Damn Vulnerable DeFi (https://damnvulnerabledefi.xyz)
  */
-contract TrusterLenderPool is ReentrancyGuard {
+contract TrustooooooorLenderPool is ReentrancyGuard {
 
     using Address for address;
 

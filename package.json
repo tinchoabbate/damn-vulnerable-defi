@@ -8,7 +8,7 @@
   },
   "scripts": {
     "unstoppable": "yarn hardhat test test/unstoppable/unstoppable.challenge.js",
-    "truster": "yarn hardhat test test/truster/truster.challenge.js",
+    "trustooooooor": "yarn hardhat test test/trustooooooor/trustooooooor.challenge.js",
     "naive-receiver": "yarn hardhat test test/naive-receiver/naive-receiver.challenge.js",
     "side-entrance": "yarn hardhat test test/side-entrance/side-entrance.challenge.js",
     "the-rewarder": "yarn hardhat test test/the-rewarder/the-rewarder.challenge.js",
