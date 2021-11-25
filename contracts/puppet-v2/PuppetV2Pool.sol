@@ -6,7 +6,13 @@ import "@uniswap/v2-periphery/contracts/libraries/SafeMath.sol";
 
 interface IERC20 {
     function transfer(address to, uint256 amount) external returns (bool);
-    function transferFrom(address from, address to, uint256 amount) external returns (bool);
+
+    function transferFrom(
+        address from,
+        address to,
+        uint256 amount
+    ) external returns (bool);
+
     function balanceOf(address account) external returns (uint256);
 }
 
@@ -21,12 +27,12 @@ contract PuppetV2Pool {
     address private _uniswapFactory;
     IERC20 private _token;
     IERC20 private _weth;
-    
+
     mapping(address => uint256) public deposits;
-        
+
     event Borrowed(address indexed borrower, uint256 depositRequired, uint256 borrowAmount, uint256 timestamp);
 
-    constructor (
+    constructor(
         address wethAddress,
         address tokenAddress,
         address uniswapPairAddress,
@@ -48,7 +54,7 @@ contract PuppetV2Pool {
 
         // Calculate how much WETH the user must deposit
         uint256 depositOfWETHRequired = calculateDepositOfWETHRequired(borrowAmount);
-        
+
         // Take the WETH
         _weth.transferFrom(msg.sender, address(this), depositOfWETHRequired);
 
@@ -61,14 +67,12 @@ contract PuppetV2Pool {
     }
 
     function calculateDepositOfWETHRequired(uint256 tokenAmount) public view returns (uint256) {
-        return _getOracleQuote(tokenAmount).mul(3) / (10 ** 18);
+        return _getOracleQuote(tokenAmount).mul(3) / (10**18);
     }
 
     // Fetch the price from Uniswap v2 using the official libraries
     function _getOracleQuote(uint256 amount) private view returns (uint256) {
-        (uint256 reservesWETH, uint256 reservesToken) = UniswapV2Library.getReserves(
-            _uniswapFactory, address(_weth), address(_token)
-        );
-        return UniswapV2Library.quote(amount.mul(10 ** 18), reservesToken, reservesWETH);
+        (uint256 reservesWETH, uint256 reservesToken) = UniswapV2Library.getReserves(_uniswapFactory, address(_weth), address(_token));
+        return UniswapV2Library.quote(amount.mul(10**18), reservesToken, reservesWETH);
     }
 }

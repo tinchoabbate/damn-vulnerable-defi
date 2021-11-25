@@ -9,7 +9,6 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
  * @author Damn Vulnerable DeFi (https://damnvulnerabledefi.xyz)
  */
 contract DamnValuableToken is ERC20 {
-
     // Decimals are set to 18 by default in `ERC20`
     constructor() ERC20("DamnValuableToken", "DVT") {
         _mint(msg.sender, type(uint256).max);

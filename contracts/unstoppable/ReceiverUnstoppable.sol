@@ -10,7 +10,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  * @author Damn Vulnerable DeFi (https://damnvulnerabledefi.xyz)
  */
 contract ReceiverUnstoppable {
-
     UnstoppableLender private immutable pool;
     address private immutable owner;
 

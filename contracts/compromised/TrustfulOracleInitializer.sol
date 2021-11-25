@@ -8,7 +8,6 @@ import "./TrustfulOracle.sol";
  * @author Damn Vulnerable DeFi (https://damnvulnerabledefi.xyz)
  */
 contract TrustfulOracleInitializer {
-
     event NewTrustfulOracle(address oracleAddress);
 
     TrustfulOracle public oracle;
@@ -17,8 +16,7 @@ contract TrustfulOracleInitializer {
         address[] memory sources,
         string[] memory symbols,
         uint256[] memory initialPrices
-    )
-    {
+    ) {
         oracle = new TrustfulOracle(sources, true);
         oracle.setupInitialPrices(sources, symbols, initialPrices);
         emit NewTrustfulOracle(address(oracle));

@@ -11,12 +11,11 @@ import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
  *         The oracle's price for a given symbol is the median price of the symbol over all sources.
  */
 contract TrustfulOracle is AccessControlEnumerable {
-
     bytes32 public constant TRUSTED_SOURCE_ROLE = keccak256("TRUSTED_SOURCE_ROLE");
     bytes32 public constant INITIALIZER_ROLE = keccak256("INITIALIZER_ROLE");
 
     // Source address => (symbol => price)
-    mapping(address => mapping (string => uint256)) private pricesBySource;
+    mapping(address => mapping(string => uint256)) private pricesBySource;
 
     modifier onlyTrustedSource() {
         require(hasRole(TRUSTED_SOURCE_ROLE, msg.sender));
@@ -28,16 +27,11 @@ contract TrustfulOracle is AccessControlEnumerable {
         _;
     }
 
-    event UpdatedPrice(
-        address indexed source,
-        string indexed symbol,
-        uint256 oldPrice,
-        uint256 newPrice
-    );
+    event UpdatedPrice(address indexed source, string indexed symbol, uint256 oldPrice, uint256 newPrice);
 
     constructor(address[] memory sources, bool enableInitialization) {
         require(sources.length > 0);
-        for(uint256 i = 0; i < sources.length; i++) {
+        for (uint256 i = 0; i < sources.length; i++) {
             _setupRole(TRUSTED_SOURCE_ROLE, sources[i]);
         }
 
@@ -51,13 +45,10 @@ contract TrustfulOracle is AccessControlEnumerable {
         address[] memory sources,
         string[] memory symbols,
         uint256[] memory prices
-    ) 
-        public
-        onlyInitializer
-    {
+    ) public onlyInitializer {
         // Only allow one (symbol, price) per source
         require(sources.length == symbols.length && symbols.length == prices.length);
-        for(uint256 i = 0; i < sources.length; i++) {
+        for (uint256 i = 0; i < sources.length; i++) {
             _setPrice(sources[i], symbols[i], prices[i]);
         }
         renounceRole(INITIALIZER_ROLE, msg.sender);
@@ -91,7 +82,11 @@ contract TrustfulOracle is AccessControlEnumerable {
         return getRoleMemberCount(TRUSTED_SOURCE_ROLE);
     }
 
-    function _setPrice(address source, string memory symbol, uint256 newPrice) private {
+    function _setPrice(
+        address source,
+        string memory symbol,
+        uint256 newPrice
+    ) private {
         uint256 oldPrice = pricesBySource[source][symbol];
         pricesBySource[source][symbol] = newPrice;
         emit UpdatedPrice(source, symbol, oldPrice, newPrice);
@@ -119,7 +114,7 @@ contract TrustfulOracle is AccessControlEnumerable {
                     arrayOfNumbers[j] = tmp;
                 }
             }
-        }        
+        }
         return arrayOfNumbers;
     }
 }

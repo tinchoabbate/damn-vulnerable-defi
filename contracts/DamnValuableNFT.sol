@@ -7,9 +7,9 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
 /**
-  * @title DamnValuableNFT
-  * @author Damn Vulnerable DeFi (https://damnvulnerabledefi.xyz)
-  * @notice Implementation of a mintable and burnable NFT with role-based access controls
+ * @title DamnValuableNFT
+ * @author Damn Vulnerable DeFi (https://damnvulnerabledefi.xyz)
+ * @notice Implementation of a mintable and burnable NFT with role-based access controls
  */
 contract DamnValuableNFT is ERC721, ERC721Burnable, AccessControl {
     using Counters for Counters.Counter;
@@ -29,12 +29,7 @@ contract DamnValuableNFT is ERC721, ERC721Burnable, AccessControl {
         return tokenId;
     }
 
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        override(ERC721, AccessControl)
-        returns (bool)
-    {
+    function supportsInterface(bytes4 interfaceId) public view override(ERC721, AccessControl) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 }
