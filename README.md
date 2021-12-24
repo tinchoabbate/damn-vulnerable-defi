@@ -5,13 +5,10 @@
 Featuring flash loans, price oracles, governance, NFTs, lending pools, smart contract wallets, timelocks, and more!
 
 Created by [@tinchoabbate](https://twitter.com/tinchoabbate)
-
-## Play
-
 Visit [damnvulnerabledefi.xyz](https://damnvulnerabledefi.xyz)
 
-## Disclaimer
+## Solutions
 
-All Solidity code, practices and patterns in this repository are DAMN VULNERABLE and for educational purposes only.
+There are solutions to attack the smart contract.
 
-DO NOT USE IN PRODUCTION.
+

