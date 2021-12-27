@@ -1,7 +1,6 @@
 const { ethers } = require('hardhat');
 const { expect } = require('chai');
-const { accounts, contract, web3 } = require("@openzeppelin/test-environment");
-// const TrusterAttacker = contract.fromArtifact("TrusterAttacker");
+// const { web3 } = require("@openzeppelin/test-environment");
 
 describe('[Challenge] Truster', function () {
     let deployer, attacker, attacker2;

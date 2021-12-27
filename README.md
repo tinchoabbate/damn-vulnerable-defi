@@ -58,4 +58,11 @@ This function will approve our smart contract address to transfer token token.
 
 Then our smart contract transfer token from the pool to attacker's address
 
+* Side Entrance
 
+
+Solution:
+
+The function flashloan do a flashloan that do a deposit of all the tokens (pool) to the attackercontract.
+
+Then, the attacker contract sends all these tokens to the attacker.
