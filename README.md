@@ -11,7 +11,7 @@ Visit [damnvulnerabledefi.xyz](https://damnvulnerabledefi.xyz)
 
 Code's solution are in ./test/... and if needed, in ./contracts/attacker-contracts/...
 
-* Unstoppable 
+### 1 Unstoppable 
 
 There's a lending pool with a million DVT tokens in balance, offering flash loans for free.
 If only there was a way to attack and stop the pool from offering flash loans ...
@@ -29,7 +29,7 @@ then, when calling function flashloan:
 
 > assert(poolBalance == balanceBefore); // is now False
 
-* Naive receiver
+### 2 Naive receiver
 
 There's a lending pool offering quite expensive flash loans of Ether, which has 1000 ETH in balance.
 
@@ -42,7 +42,7 @@ Solution:
 Anyone call call the flashloan function, and then, choose the naive receiver...
 Fix: 
 
-* Truster
+### 3 Truster
 
 More and more lending pools are offering flash loans. In this case, a new pool has launched that is offering flash loans of DVT tokens for free.
 
@@ -58,7 +58,7 @@ This function will approve our smart contract address to transfer token token.
 
 Then our smart contract transfer token from the pool to attacker's address
 
-* Side Entrance
+### 4 Side Entrance
 
 
 Solution:
@@ -66,3 +66,22 @@ Solution:
 The function flashloan do a flashloan that do a deposit of all the tokens (pool) to the attackercontract.
 
 Then, the attacker contract sends all these tokens to the attacker.
+
+### 5 The Rewarder
+
+There's a pool offering rewards in tokens every 5 days for those who deposit their DVT tokens into it.
+
+Alice, Bob, Charlie and David have already deposited some DVT tokens, and have won their rewards!
+
+You don't have any DVT tokens. But in the upcoming round, you must claim most rewards for yourself.
+
+Solution:
+
+Create a contract that calls the function flashLoan:
+- that call receiveFlashLoan, it will do:
+  - a deposit of the amount loaned, which generate a reward 
+  - withdraw the amount
+  - transfer back tokens loaned
+- then transfer token from rewardToken to the attacker
+
+(take care to have approve transfer from theRewarderPool to flashLoanPool)
