@@ -78,10 +78,29 @@ You don't have any DVT tokens. But in the upcoming round, you must claim most re
 Solution:
 
 Create a contract that calls the function flashLoan:
-- that call receiveFlashLoan, it will do:
+- that calls receiveFlashLoan, it will do:
   - a deposit of the amount loaned, which generate a reward 
   - withdraw the amount
   - transfer back tokens loaned
 - then transfer token from rewardToken to the attacker
 
 (take care to have approve transfer from theRewarderPool to flashLoanPool)
+
+### 6 Selfie
+
+A new cool lending pool has launched! It's now offering flash loans of DVT tokens.
+
+Wow, and it even includes a really fancy governance mechanism to control it.
+
+You start with no DVT tokens in balance, and the pool has 1.5 million. Your objective: take them all.
+
+Solution:
+
+Create a contract that calls the function flashLoan:
+- thats call receiveFlashLoan, it will do:
+  - have a lot of governance tokens (same as the pool tokens) 
+  - do a snapshot of the governance token -> it gives & remembers vote rights 
+  - throught queueAction function, use the function drainAllFunds to send the tokens to the attackerEOA (in 2days)
+  - store the actionId to use it later
+  - transfer back the tokens to the pool flashloan
+- "wait" 2 days and then activate executeAction from governance smart contract
