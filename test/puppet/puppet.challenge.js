@@ -109,7 +109,6 @@ describe('[Challenge] Puppet', function () {
         const getStats = async (step) => {
             console.log("step -  ", step);
             
-
             bal = await this.token.balanceOf(this.uniswapExchange.address);
             console.log("uniswap token:",(bal/10**18).toString());
 
@@ -142,8 +141,6 @@ describe('[Challenge] Puppet', function () {
         );
         await getStats(3)
         
-        console.log("ll", (POOL_INITIAL_TOKEN_BALANCE/10**18).toString())
-        console.log("LL", ((await this.lendingPool.calculateDepositRequired(POOL_INITIAL_TOKEN_BALANCE))/10**18).toString());
         // borrow
         await this.lendingPool.connect(attacker).borrow(
             POOL_INITIAL_TOKEN_BALANCE, 
