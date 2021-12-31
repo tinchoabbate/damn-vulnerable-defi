@@ -104,3 +104,27 @@ Create a contract that calls the function flashLoan:
   - store the actionId to use it later
   - transfer back the tokens to the pool flashloan
 - "wait" 2 days and then activate executeAction from governance smart contract
+
+### 8 Puppet
+
+There's a huge lending pool borrowing Damn Valuable Tokens (DVTs), where you first need to deposit twice the borrow amount in ETH as collateral. The pool currently has 100000 DVTs in liquidity.
+
+There's a DVT market opened in an Uniswap v1 exchange, currently with 10 ETH and 10 DVT in liquidity.
+
+Starting with 25 ETH and 1000 DVTs in balance, you must steal all tokens from the lending pool.
+
+Solution:
+
+The way how puppet calculates the number of token for N ETH can be fooled:
+
+indeed _computeOraclePrice is just gonna div the #ETH by the #token to estimate the value, but if #ETH << #Token, as the state when we borrow:
+
+- uniswap token: 1009 
+- uniswap ETH: 0.099
+
+Then, with few ETH (20), you can borrow a lot of Tokens.
+
+
+Small fixes: 
+- (still unsafe) a simple solution is to have a lot more token in uniswap, so it become really harder to be in this situation.
+- (safer) Forbid huge variation in short time, i.e: take care about flashloan...
