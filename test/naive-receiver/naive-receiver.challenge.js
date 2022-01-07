@@ -29,8 +29,32 @@ describe('[Challenge] Naive receiver', function () {
         expect(await ethers.provider.getBalance(this.receiver.address)).to.be.equal(ETHER_IN_RECEIVER);
     });
 
+    /**
+     * Exploit Overview
+     * 
+     * @dev
+     * This challenge was about exploiting an existing receiver contract with the lending pool.
+     * The main thing here is that we can control who the borrower is as that is under the 
+     * attackers control.
+     * 
+     * Since the lending pools fee is 1 ether and the receiver contract has 10 ether we can 
+     * execute a transaction that executes a flashLoan on behalf of the receiver. The 
+     * receiver then processes and returns the flashloan with the fee.
+     * 
+     * To do this in one transaction, deploy a smart contract that has a function which 
+     * calls the lender in a for loop 10 times. 
+     * 
+     * Contract Exploit file is located at:
+     * "contracts/attacker-contracts/AttackNaiveReceiver.sol"
+     */
     it('Exploit', async function () {
-        /** CODE YOUR EXPLOIT HERE */   
+        /** CODE YOUR EXPLOIT HERE */ 
+        
+        const AttackFactory = await ethers.getContractFactory("AttackNaiveReceiver", attacker);
+        const attackContract = await AttackFactory.deploy(this.pool.address);
+
+        await attackContract.attack(this.receiver.address);
+
     });
 
     after(async function () {

@@ -43,3 +43,4 @@ contract NaiveReceiverLenderPool is ReentrancyGuard {
     // Allow deposits of ETH
     receive () external payable {}
 }
+

