@@ -1,17 +1,18 @@
 ![](cover.png)
 
-**A set of challenges to hack implementations of DeFi in Ethereum.**
+# Blue Alder's Solutions to DamnVulnerableDeFi
 
-Featuring flash loans, price oracles, governance, NFTs, lending pools, smart contract wallets, timelocks, and more!
+This repository contains the solutions to  [damnvulnerabledefi.xyz](https://damnvulnerabledefi.xyz) wargame style challenges. Full with writeups and code comments so you can follow along both the exploit scripts and smart contracts.
 
-Created by [@tinchoabbate](https://twitter.com/tinchoabbate)
+The exploits are written in the test/ folder per challenge.
 
-## Play
+Full credit to [@tinchoabbate](https://twitter.com/tinchoabbate) for creating these amazing challenges!
 
-Visit [damnvulnerabledefi.xyz](https://damnvulnerabledefi.xyz)
+## Testing the challenges
+Firstly ensure all the dependencies are installed:
 
-## Disclaimer
+`yarn install`
 
-All Solidity code, practices and patterns in this repository are DAMN VULNERABLE and for educational purposes only.
+To run any of the solutions you can run 
 
-DO NOT USE IN PRODUCTION.
+`yarn run <CHALLENGE_NAME>`
