@@ -15,6 +15,7 @@
     "selfie": "yarn hardhat test test/selfie/selfie.challenge.js",
     "compromised": "yarn hardhat test test/compromised/compromised.challenge.js",
     "puppet": "yarn hardhat test test/puppet/puppet.challenge.js",
+    
     "puppet-v2": "yarn hardhat test test/puppet-v2/puppet-v2.challenge.js",
     "free-rider": "yarn hardhat test test/free-rider/free-rider.challenge.js",
     "backdoor": "yarn hardhat test test/backdoor/backdoor.challenge.js",
@@ -30,6 +31,7 @@
     "@uniswap/v2-core": "1.0.1",
     "@uniswap/v2-periphery": "1.1.0-beta.0",
     "chai": "4.3.4",
+    "dotenv": "16.0.0",
     "ethereum-waffle": "3.4.0",
     "ethers": "5.4.7",
     "hardhat": "2.6.4",
