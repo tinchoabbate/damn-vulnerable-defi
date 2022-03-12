@@ -35,6 +35,7 @@ describe('[Challenge] Unstoppable', function () {
          // Show it's possible for someUser to take out a flash loan
          const ReceiverContractFactory = await ethers.getContractFactory('ReceiverUnstoppable', someUser);
          this.receiverContract = await ReceiverContractFactory.deploy(this.pool.address);
+        console.log(this.receiverContract)
          await this.receiverContract.executeFlashLoan(10);
     });
 
