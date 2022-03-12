@@ -1,6 +1,7 @@
 require("@nomiclabs/hardhat-waffle");
 require('@openzeppelin/hardhat-upgrades');
 require('hardhat-dependency-compiler');
+require('dotenv').config()
 
 module.exports = {
     networks: {
