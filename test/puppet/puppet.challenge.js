@@ -114,6 +114,6 @@ describe('[Challenge] Puppet', function () {
         ).to.be.eq('0');
         expect(
             await this.token.balanceOf(attacker.address)
-        ).to.be.gt(POOL_INITIAL_TOKEN_BALANCE);
+        ).to.be.gte(POOL_INITIAL_TOKEN_BALANCE);
     });
 });
