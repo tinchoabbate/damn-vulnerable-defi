@@ -14,7 +14,7 @@ interface IPoolFunc {
 
 contract TrusterAttack {
     using Address for address;
-    
+
     constructor(address poolAddress,
                 address tokenAddress,
                 address attackerAddress
