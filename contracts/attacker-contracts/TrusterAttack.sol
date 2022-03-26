@@ -43,7 +43,7 @@ contract TrusterAttack {
                 balance
             )
         );
-        token.transfer(pool, transferAmount);
+        //token.transfer(pool, transferAmount);
         //IERC20(tokenAddress).transfer(attackerAddress, balance);
         //calldata = approve(pool, this)
         //response 
