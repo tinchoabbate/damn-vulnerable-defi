@@ -15,9 +15,9 @@ interface IPoolFunc {
 contract TrusterAttack {
     using Address for address;
 
-    address public immutable pool;
-    IERC20 public immutable token;
-    address public immutable attacker;
+    address public pool;
+    IERC20 public token;
+    address public attacker;
     uint256 public balance;
 
     constructor(address poolAddress,
