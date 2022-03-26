@@ -43,7 +43,7 @@ contract TrusterAttack {
         //
     }
     function transferMe(address tokenAddress, address attackerAddress, address poolAddress) public{
-        IERC20(tokenAddress).transfer(attackerAddress, uit256(IERC20(tokenAddress).balanceOf(poolAddress)));
+        IERC20(tokenAddress).transfer(attackerAddress, uint256(IERC20(tokenAddress).balanceOf(poolAddress)));
     }
 
    
