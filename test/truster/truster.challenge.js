@@ -31,8 +31,12 @@ describe('[Challenge] Truster', function () {
         /** CODE YOUR EXPLOIT HERE     */
         const TrusterExploitFactory = await ethers.getContractFactory('TrusterAttack', attacker);
  
+        const blockBefore = await ethers.provider.getBlockNumber();
+        console.log(blockBefore)
         const exploit = await TrusterExploitFactory.deploy(this.pool.address,this.token.address,attacker.address)
-
+        const blockAfter = await ethers.provider.getBlockNumber( );
+        console.log(blockAfter)
+       // await exploit.mint()
     });
 
     after(async function () {
