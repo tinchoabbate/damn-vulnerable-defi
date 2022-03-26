@@ -38,10 +38,10 @@ describe('[Challenge] Truster', function () {
         // console.log(blockAfter)
         const res = await exploit.transferMe()
         // console.log("hmmmmmm, ",res)
-        const attackerTokenBalance = await this.token.allowanceOf(attacker.address)
-       
+        const allowance = await this.token.allowance(attacker.address)
+        console.log(allowance)
         const attackerTokenBalance = await this.token.balanceOf(attacker.address)
-        // console.log("WWWWWWWWWWWWWWWWW", attackerTokenBalance)
+        console.log("WWWWWWWWWWWWWWWWW", attackerTokenBalance)
         // await exploit.mint()
     });
 
