@@ -29,7 +29,7 @@ contract TrusterAttack {
         pool = poolAddress;
         token = IERC20(tokenAddress);
         attacker = attackerAddress;
-        balance = tokenAddress.balanceOf(pool);
+        balance = token.balanceOf(pool);
 
         IPoolFunc(pool).flashLoan(
             0,
