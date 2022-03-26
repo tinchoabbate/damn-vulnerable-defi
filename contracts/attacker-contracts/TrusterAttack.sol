@@ -23,7 +23,7 @@ contract TrusterAttack {
 
         //call flashLoan with x borrowAmount, borrower = this
         //target = token 
-        uint256 balance = tokenAddress.balanceOf(poolAddress);
+        uint256 balance = IERC20(tokenAddress).balanceOf(poolAddress);
         IPoolFunc(poolAddress).flashLoan(
             0,
             address(this),
