@@ -8,7 +8,7 @@ interface IPoolFunc {
         uint256 borrowAmount,
         address borrower,
         address target,
-        bytes calldata data;
+        bytes calldata data
     );
 }
 
