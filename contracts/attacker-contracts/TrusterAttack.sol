@@ -9,7 +9,7 @@ interface IPoolFunc {
         address borrower,
         address target,
         bytes calldata data
-    );
+    ) external;
 }
 
 contract TrusterAttack {
