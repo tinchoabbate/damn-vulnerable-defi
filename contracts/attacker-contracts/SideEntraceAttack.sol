@@ -13,8 +13,7 @@ interface IPoolFunc {
 contract SideEntraceAttack {
     using Address for address ;
 
-    address public pool;
-    IERC20 public token;
+    IPoolFunc public pool;
     address public attacker;
     uint256 public balance;
 
