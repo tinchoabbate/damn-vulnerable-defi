@@ -11,7 +11,7 @@ interface IPoolFunc {
 }
 
 contract SideEntraceAttack {
-    using Address for address;
+    using Address for address ;
 
     address public pool;
     IERC20 public token;
@@ -23,7 +23,7 @@ contract SideEntraceAttack {
                ) 
     {
         attacker = attackerAddress;
-        pool = address(poolAddress);
+        pool = payable(poolAddress);
         balance = address(poolAddress).balance;
         console.log("Starting flashloan %s",balance);
         pool.functionCallWithValue(
