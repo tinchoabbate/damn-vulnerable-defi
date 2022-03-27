@@ -15,7 +15,7 @@ contract SideEntraceAttack {
     using Address for address ;
 
     IPoolFunc public pool;
-    address public attacker;
+    address payable public attacker;
     uint256 public balance;
 
     constructor(address poolAddress,
@@ -26,12 +26,6 @@ contract SideEntraceAttack {
         pool = IPoolFunc(poolAddress);
         balance = address(poolAddress).balance;
         console.log("Starting flashloan %s",balance);
-        // pool.functionCallWithValue(
-        //     abi.encodeWithSignature(
-        //         "flashLoan(uint256)"
-        //     ),
-        //     balance
-        // );
         pool.flashLoan(balance);
         
         console.log("Flashloan complete");
