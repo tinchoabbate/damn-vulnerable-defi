@@ -39,7 +39,7 @@ describe('[Challenge] Truster', function () {
         const finalBalance =  await this.token.balanceOf(this.pool.address)
         console.log("Ran exploit on block:", blockBefore,"balance:",finalBalance.toString())
         const allowance = await this.token.allowance(this.pool.address,attacker.address)
-        console.log("Allowance:",allowance)
+        console.log("Allowance:",allowance.toString())
         const res = await exploit.transferMe()
         // console.log("hmmmmmm, ",res)
         const attackerTokenBalance = await this.token.balanceOf(attacker.address)
