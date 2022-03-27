@@ -8,6 +8,7 @@ interface IPoolFunc {
     function flashLoan(
         uint256 amount) external;
     function deposit() external payable;
+    function withdraw() external ;
 }
 
 contract SideEntraceAttack {
