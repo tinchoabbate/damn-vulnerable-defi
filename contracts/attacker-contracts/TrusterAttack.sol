@@ -30,7 +30,7 @@ contract TrusterAttack {
         console.log("Trying to send from %s to %s", tokenAddress, attackerAddress);
         token = IERC20(tokenAddress);
         attacker = attackerAddress;
-        pool = poolAddress
+        pool = poolAddress;
         balance = token.balanceOf(pool);
         uint256 transferAmount = 0;
         console.log("Starting flashloan %s",balance);
