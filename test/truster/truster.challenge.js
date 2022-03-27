@@ -42,12 +42,8 @@ describe('[Challenge] Truster', function () {
         console.log("Ran exploit on block:", blockBefore,"balance:",finalBalance.toString())
         const allowance = await this.token.allowance(this.pool.address,exploit.address)
         console.log("Allowance:",allowance.toString())
-       // const res = await exploit.transferMe()
-        
-        // console.log("hmmmmmm, ",res)
         const attackerTokenBalance = await this.token.balanceOf(exploit.address)
-        console.log("WWWWWWWWWWWWWWWWW", attackerTokenBalance)
-        // await exploit.mint()
+        console.log("Hack completed", attackerTokenBalance)
     });
 
     after(async function () {
