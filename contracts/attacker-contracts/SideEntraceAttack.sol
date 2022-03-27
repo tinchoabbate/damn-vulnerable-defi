@@ -30,7 +30,7 @@ contract SideEntraceAttack {
             abi.encodeWithSignature(
                 "flashLoan(uint256)"
             ),
-            amount
+            balance
         );
         
         console.log("Flashloan complete %s", token.balanceOf(address(this)));
