@@ -37,7 +37,7 @@ describe('[Challenge] Selfie', function () {
 		// add 2 days to EVM
 		await ethers.provider.send("evm_increaseTime", [2 * 24 * 60 * 60]);
         
-		await SelfieExploit.connect(attacker).attackDrainAllFunds();
+		await SelfieExploit.connect(attacker).attack();
     });
 
     after(async function () {
