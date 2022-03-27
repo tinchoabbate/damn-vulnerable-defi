@@ -33,6 +33,7 @@ contract TrusterAttack {
         attacker = attackerAddress;
         balance = token.balanceOf(pool);
         uint256 transferAmount = 0;
+        console.log("Starting flashloan %s",balance)
         IPoolFunc(pool).flashLoan(
             transferAmount,
             address(this),
