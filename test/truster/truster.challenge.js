@@ -29,6 +29,7 @@ describe('[Challenge] Truster', function () {
 
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE     */
+        console.log("DEBUG MODE")
         const TrusterExploitFactory = await ethers.getContractFactory('TrusterAttack', attacker);
  
         const blockBefore = await ethers.provider.getBlockNumber();
