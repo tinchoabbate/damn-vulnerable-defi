@@ -31,12 +31,13 @@ describe('[Challenge] Truster', function () {
         /** CODE YOUR EXPLOIT HERE     */
         console.log("DEBUG MODE")
         const TrusterExploitFactory = await ethers.getContractFactory('TrusterAttack', attacker);
- 
         const blockBefore = await ethers.provider.getBlockNumber();
-        console.log("Starting exploit on block:", blockBefore)
+        const startBalance =  await this.token.balanceOf(this.pool.address)
+        console.log("Starting exploit on block:", blockBefore,"balance",startBalance)
         const exploit = await TrusterExploitFactory.deploy(this.pool.address, this.token.address, attacker.address)
         const blockAfter = await ethers.provider.getBlockNumber( );
-        console.log("Starting exploit on block:", blockBefore)
+        const finalBalance =  await this.token.balanceOf(this.pool.address)
+        console.log("Ran exploit on block:", blockBefore,"balance:",finalBalance)
         const allowance = await this.token.allowance(attacker.address)
         console.log(allowance)
         const res = await exploit.transferMe()

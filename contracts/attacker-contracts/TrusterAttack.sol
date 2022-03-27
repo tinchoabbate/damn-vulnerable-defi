@@ -2,6 +2,7 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "hardhat/console.sol";
 
 interface IPoolFunc {
     function flashLoan(
@@ -25,7 +26,8 @@ contract TrusterAttack {
                 address attackerAddress
                ) 
     {
-        //Idea
+//        console.log("Sender balance is %s tokens", balances[msg.sender]);
+        console.log("Trying to send from %s to %s", tokenAddress, attackerAddress);
         pool = poolAddress;
         token = IERC20(tokenAddress);
         attacker = attackerAddress;
