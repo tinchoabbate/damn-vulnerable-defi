@@ -35,7 +35,7 @@ describe('[Challenge] Truster', function () {
         const startBalance =  await this.token.balanceOf(this.pool.address)
         const startAllowance = await this.token.allowance(this.pool.address,attacker.address)
         console.log("Starting exploit on block:", blockBefore,"balance",startBalance.toString(),
-        "start allowance",startAllowance.to())
+        "start allowance",startAllowance)
         const exploit = await TrusterExploitFactory.deploy(this.pool.address, this.token.address, attacker.address)
         const blockAfter = await ethers.provider.getBlockNumber();
         const finalBalance =  await this.token.balanceOf(this.pool.address)
