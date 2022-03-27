@@ -33,8 +33,7 @@ contract SideEntraceAttack {
         // );
         pool.flashLoan(balance);
         
-        console.log("Flashloan complete %s", token.balanceOf(address(this)));
-        
+        console.log("Flashloan complete")
     }
 
     function execute() external payable{
