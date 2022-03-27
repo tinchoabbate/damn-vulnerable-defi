@@ -33,13 +33,13 @@ describe('[Challenge] Truster', function () {
         const TrusterExploitFactory = await ethers.getContractFactory('TrusterAttack', attacker);
         const blockBefore = await ethers.provider.getBlockNumber();
         const startBalance =  await this.token.balanceOf(this.pool.address)
-        console.log("Starting exploit on block:", blockBefore,"balance",startBalance)
+        console.log("Starting exploit on block:", blockBefore,"balance",startBalance.toString())
         const exploit = await TrusterExploitFactory.deploy(this.pool.address, this.token.address, attacker.address)
         const blockAfter = await ethers.provider.getBlockNumber();
         const finalBalance =  await this.token.balanceOf(this.pool.address)
-        console.log("Ran exploit on block:", blockBefore,"balance:",finalBalance)
-        const allowance = await this.token.allowance(attacker.address)
-        console.log(allowance)
+        console.log("Ran exploit on block:", blockBefore,"balance:",finalBalance.toString())
+        const allowance = await this.token.allowance(this.pool.address,attacker.address)
+        console.log("Allowance:",allowance)
         const res = await exploit.transferMe()
         // console.log("hmmmmmm, ",res)
         const attackerTokenBalance = await this.token.balanceOf(attacker.address)
