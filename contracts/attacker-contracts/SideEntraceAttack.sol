@@ -15,7 +15,7 @@ contract SideEntraceAttack {
     using Address for address ;
 
     IPoolFunc public pool;
-    address public attacker;
+    address payable public attacker;
     uint256 public balance;
 
     constructor(address poolAddress,
