@@ -31,7 +31,7 @@ contract SideEntraceAttack {
                 "flashLoan(uint256)"
             ),
             amount
-        )
+        );
         
         console.log("Flashloan complete %s", token.balanceOf(address(this)));
         
