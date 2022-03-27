@@ -28,7 +28,7 @@ contract SideEntraceAttack {
         console.log("Starting flashloan %s",balance);
         pool.flashLoan(
                 balance
-            )
+            );
         
         console.log("Flashloan complete %s", token.balanceOf(address(this)));
         
