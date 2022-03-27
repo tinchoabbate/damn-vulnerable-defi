@@ -7,7 +7,7 @@ import "hardhat/console.sol";
 interface IPoolFunc {
     function flashLoan(
         uint256 amount) external;
-    function deposit() external payable
+    function deposit() external payable;
 }
 
 contract SideEntraceAttack {
