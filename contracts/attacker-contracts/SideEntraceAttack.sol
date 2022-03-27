@@ -33,7 +33,7 @@ contract SideEntraceAttack {
         // );
         pool.flashLoan(balance);
         
-        console.log("Flashloan complete")
+        console.log("Flashloan complete");
     }
 
     function execute() external payable{
