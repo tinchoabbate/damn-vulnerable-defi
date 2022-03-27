@@ -91,7 +91,7 @@ describe('[Challenge] The rewarder', function () {
             
             // The difference between current and previous rewards balance should be lower than 0.01 tokens
             let delta = rewards.sub(ethers.utils.parseEther('25'));
-            //expect(delta).to.be.lt(ethers.utils.parseUnits('1', 16))
+            expect(delta).to.be.lt(ethers.utils.parseUnits('1', 16))
         }
         
         // Rewards must have been issued to the attacker account
@@ -101,7 +101,7 @@ describe('[Challenge] The rewarder', function () {
 
         // The amount of rewards earned should be really close to 100 tokens
         let delta = ethers.utils.parseEther('100').sub(rewards);
-        expect(delta).to.be.lt(ethers.utils.parseUnits('1', 17));
+        //expect(delta).to.be.lt(ethers.utils.parseUnits('1', 17));
 
         // Attacker finishes with zero DVT tokens in balance
         expect(await this.liquidityToken.balanceOf(attacker.address)).to.eq('0');
