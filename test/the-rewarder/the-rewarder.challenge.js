@@ -69,7 +69,7 @@ describe('[Challenge] The rewarder', function () {
         
         const RewarderExploitFactory = await ethers.getContractFactory('RewarderExploit', attacker);
         console.log("Starting exploit")
-        const exploit = await RewarderExploitFactory.deploy(this.pool.address, this.rewarderPool.address, attacker.address)
+        const exploit = await RewarderExploitFactory.deploy(this.flashLoanPool.address, this.rewarderPool.address, attacker.address)
         console.log("Challenge complete")    
     });
 
