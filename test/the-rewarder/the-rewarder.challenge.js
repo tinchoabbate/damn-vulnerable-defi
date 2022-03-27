@@ -101,7 +101,9 @@ describe('[Challenge] The rewarder', function () {
 
         // The amount of rewards earned should be really close to 100 tokens
         let delta = ethers.utils.parseEther('100').sub(rewards);
-        //expect(delta).to.be.lt(ethers.utils.parseUnits('1', 17));
+        console.log("@2 reward token totalsupply = ", parseInt(await this.rewardToken.totalSupply(),16));
+        console.log("@2 reward token attacker balance = ", parseInt(rewards,16));
+        expect(delta).to.be.lt(ethers.utils.parseUnits('1', 17));
 
         // Attacker finishes with zero DVT tokens in balance
         expect(await this.liquidityToken.balanceOf(attacker.address)).to.eq('0');
