@@ -27,8 +27,8 @@ describe('[Challenge] The rewarder', function () {
         await this.liquidityToken.transfer(this.flashLoanPool.address, TOKENS_IN_LENDER_POOL);
 
         this.rewarderPool = await TheRewarderPoolFactory.deploy(this.liquidityToken.address);
-        this.rewardToken = await RewardTokenFactory.attach(await this.rewarderPool.rewardToken());
-        this.accountingToken = await AccountingTokenFactory.attach(await this.rewarderPool.accToken());
+        this.rewardToken = RewardTokenFactory.attach(await this.rewarderPool.rewardToken());
+        this.accountingToken = AccountingTokenFactory.attach(await this.rewarderPool.accToken());
 
         // Alice, Bob, Charlie and David deposit 100 tokens each
         for (let i = 0; i < users.length; i++) {
