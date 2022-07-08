@@ -1,7 +1,7 @@
 const { ethers } = require('hardhat');
 const { expect } = require('chai');
 
-describe('[Challenge] Junior Miners', function () {
+describe('[Challenge] Safe Miners', function () {
     let deployer, attacker;
 
     const DEPOSIT_TOKEN_AMOUNT = ethers.utils.parseEther('2000042');

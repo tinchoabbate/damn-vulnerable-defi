@@ -1,5 +1,13 @@
 # Changelog
 
+## v2.2.0
+
+- Change name of challenge "Junior Miners" to "Safe Miners".
+
+## v2.1.0
+
+- New level: Junior Miners.
+
 ## v2.0.0
 
 - Refactor testing environment. Now using Hardhat, Ethers and Waffle. This should give players a better debugging experience, and allow them to familiarize with up-to-date JavaScript tooling for smart contract testing.

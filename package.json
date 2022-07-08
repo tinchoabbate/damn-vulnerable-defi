@@ -1,5 +1,5 @@
 {
-  "version": "2.1.0",
+  "version": "2.2.0",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -18,7 +18,7 @@
     "free-rider": "yarn hardhat test test/free-rider/free-rider.challenge.js",
     "backdoor": "yarn hardhat test test/backdoor/backdoor.challenge.js",
     "climber": "yarn hardhat test test/climber/climber.challenge.js",
-    "junior-miners": "yarn hardhat test test/junior-miners/junior-miners.solved.js"
+    "safe-miners": "yarn hardhat test test/safe-miners/safe-miners.challenge.js"
   },
   "devDependencies": {
     "@gnosis.pm/safe-contracts": "1.3.0",
