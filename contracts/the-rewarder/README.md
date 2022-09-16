@@ -126,6 +126,6 @@ Balances:
 
 Total supply = ``400``.
 
-During the ``deposit(X)`` phase, the snapshot of the attacker is ``Snapshot(ids=[2], values=[0])`` and currentSnapshotId is incremented to 3, so querying for ``balanceOfAt(atatcker, 3)`` will return ``X`` for the amount to be accounted for rewards distribution, and the shares of the other participants gets diluted in the massive increase of total token supply ``400+X``. So for roundNumber 3, the attacker will get ``X/(400+X)`` reward tokens and each normal participant will get ``100/(400+X)``.
+During the ``deposit(X)`` phase, the snapshot of the attacker is ``Snapshot(ids=[2], values=[0])`` and currentSnapshotId is incremented to 3, so querying for ``balanceOfAt(attacker, 3)`` will return ``X`` for the amount to be accounted for rewards distribution, and the shares of the other participants gets diluted in the massive increase of total token supply ``400+X``. So for roundNumber 3, the attacker will get ``X/(400+X)`` reward tokens and each normal participant will get ``100/(400+X)``.
 
 The correct way to to it would be to first distribute the rewards and then mint the ``AccountingToken``.
