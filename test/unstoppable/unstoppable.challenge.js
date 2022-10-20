@@ -40,6 +40,24 @@ describe('[Challenge] Unstoppable', function () {
 
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
+        /* 
+            Vulnerability:
+            Pool.flashLoan relies on `assert(poolBalance == balanceBefore)`
+            where `balanceBefore = damnValuableToken.balanceOf(address(this))`.
+            By transferring any amount of damnValuableToken directly to the pool,
+            the attacker causes the assert to fail and prevents the flashLoan 
+            function from being used.
+
+            Recommendation:
+            Change how pool balance is stored and retrieved
+            L30 -> poolBalance = damnValuableToken.balanceOf(address(this)) + amount;
+            L39:L40 -> Remove
+
+            Conversely, a conditional could be added to flashLoan that checks
+            whether poolBalance == balanceBefore and, if not, updates pool balance
+            accordingly.
+        */
+        await this.token.connect(attacker).transfer(this.pool.address, 1)
     });
 
     after(async function () {
