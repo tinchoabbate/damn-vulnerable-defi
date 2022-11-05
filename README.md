@@ -8,3 +8,6 @@ The results are shown below.
 
 ## naive-receiver
 ![](images/naive-receiver.png)
+ 
+## truster
+![](images/truster.png)
