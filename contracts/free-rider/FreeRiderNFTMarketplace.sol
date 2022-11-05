@@ -73,11 +73,13 @@ contract FreeRiderNFTMarketplace is ReentrancyGuard {
 
         amountOfOffers--;
 
+        address seller = token.ownerOf(tokenId);
+
         // transfer from seller to buyer
-        token.safeTransferFrom(token.ownerOf(tokenId), msg.sender, tokenId);
+        token.safeTransferFrom(seller, msg.sender, tokenId);
 
         // pay seller
-        payable(token.ownerOf(tokenId)).sendValue(priceToPay);
+        payable(seller).sendValue(priceToPay);
 
         emit NFTBought(msg.sender, tokenId, priceToPay);
     }    
