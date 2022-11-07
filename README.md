@@ -1,7 +1,6 @@
 # **A set of challenges to learn offensive security of smart contracts in Ethereum.**
 Visit [damnvulnerabledefi.xyz](https://damnvulnerabledefi.xyz)  
-The results are shown below.  
-// the results of test that I've written are shown below .
+the result of tests that I've written are shown below .
 
 ## unstoppable
 ![](images/unstoppable.png)
@@ -11,3 +10,6 @@ The results are shown below.
  
 ## truster
 ![](images/truster.png)
+
+## side-entrance
+![](images/side-entrance.png)
