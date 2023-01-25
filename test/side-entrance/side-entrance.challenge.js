@@ -1,26 +1,27 @@
 const { ethers } = require('hardhat');
 const { expect } = require('chai');
+const { setBalance } = require('@nomicfoundation/hardhat-network-helpers');
 
 describe('[Challenge] Side entrance', function () {
+    let deployer, player;
+    let pool;
 
-    let deployer, attacker;
-
-    const ETHER_IN_POOL = ethers.utils.parseEther('1000');
+    const ETHER_IN_POOL = 1000n * 10n ** 18n;
+    const PLAYER_INITIAL_ETH_BALANCE = 1n * 10n ** 18n;
 
     before(async function () {
         /** SETUP SCENARIO - NO NEED TO CHANGE ANYTHING HERE */
-        [deployer, attacker] = await ethers.getSigners();
+        [deployer, player] = await ethers.getSigners();
 
-        const SideEntranceLenderPoolFactory = await ethers.getContractFactory('SideEntranceLenderPool', deployer);
-        this.pool = await SideEntranceLenderPoolFactory.deploy();
-        
-        await this.pool.deposit({ value: ETHER_IN_POOL });
+        // Deploy pool and fund it
+        pool = await (await ethers.getContractFactory('SideEntranceLenderPool', deployer)).deploy();
+        await pool.deposit({ value: ETHER_IN_POOL });
+        expect(await ethers.provider.getBalance(pool.address)).to.equal(ETHER_IN_POOL);
 
-        this.attackerInitialEthBalance = await ethers.provider.getBalance(attacker.address);
+        // Player starts with limited ETH in balance
+        await setBalance(player.address, PLAYER_INITIAL_ETH_BALANCE);
+        expect(await ethers.provider.getBalance(player.address)).to.eq(PLAYER_INITIAL_ETH_BALANCE);
 
-        expect(
-            await ethers.provider.getBalance(this.pool.address)
-        ).to.equal(ETHER_IN_POOL);
     });
 
     /**
@@ -56,16 +57,10 @@ describe('[Challenge] Side entrance', function () {
     });
 
     after(async function () {
-        /** SUCCESS CONDITIONS */
-        expect(
-            await ethers.provider.getBalance(this.pool.address)
-        ).to.be.equal('0');
-        
-        // Not checking exactly how much is the final balance of the attacker,
-        // because it'll depend on how much gas the attacker spends in the attack
-        // If there were no gas costs, it would be balance before attack + ETHER_IN_POOL
-        expect(
-            await ethers.provider.getBalance(attacker.address)
-        ).to.be.gt(this.attackerInitialEthBalance);
+        /** SUCCESS CONDITIONS - NO NEED TO CHANGE ANYTHING HERE */
+
+        // Player took all ETH from the pool
+        expect(await ethers.provider.getBalance(pool.address)).to.be.equal(0);
+        expect(await ethers.provider.getBalance(player.address)).to.be.gt(ETHER_IN_POOL);
     });
 });

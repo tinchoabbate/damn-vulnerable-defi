@@ -1,36 +1,40 @@
-const {
-    ethers
-} = require('hardhat');
-const {
-    expect
-} = require('chai');
+const { ethers } = require('hardhat');
+const { expect } = require('chai');
+const { time } = require("@nomicfoundation/hardhat-network-helpers");
 
 describe('[Challenge] Selfie', function () {
-    let deployer, attacker;
+    let deployer, player;
+    let token, governance, pool;
 
-    const TOKEN_INITIAL_SUPPLY = ethers.utils.parseEther('2000000'); // 2 million tokens
-    const TOKENS_IN_POOL = ethers.utils.parseEther('1500000'); // 1.5 million tokens
-
+    const TOKEN_INITIAL_SUPPLY = 2000000n * 10n ** 18n;
+    const TOKENS_IN_POOL = 1500000n * 10n ** 18n;
+    
     before(async function () {
         /** SETUP SCENARIO - NO NEED TO CHANGE ANYTHING HERE */
-        [deployer, attacker] = await ethers.getSigners();
+        [deployer, player] = await ethers.getSigners();
 
-        const DamnValuableTokenSnapshotFactory = await ethers.getContractFactory('DamnValuableTokenSnapshot', deployer);
-        const SimpleGovernanceFactory = await ethers.getContractFactory('SimpleGovernance', deployer);
-        const SelfiePoolFactory = await ethers.getContractFactory('SelfiePool', deployer);
+        // Deploy Damn Valuable Token Snapshot
+        token = await (await ethers.getContractFactory('DamnValuableTokenSnapshot', deployer)).deploy(TOKEN_INITIAL_SUPPLY);
 
-        this.token = await DamnValuableTokenSnapshotFactory.deploy(TOKEN_INITIAL_SUPPLY);
-        this.governance = await SimpleGovernanceFactory.deploy(this.token.address);
-        this.pool = await SelfiePoolFactory.deploy(
-            this.token.address,
-            this.governance.address
+        // Deploy governance contract
+        governance = await (await ethers.getContractFactory('SimpleGovernance', deployer)).deploy(token.address);
+        expect(await governance.getActionCounter()).to.eq(1);
+
+        // Deploy the pool
+        pool = await (await ethers.getContractFactory('SelfiePool', deployer)).deploy(
+            token.address,
+            governance.address    
         );
+        expect(await pool.token()).to.eq(token.address);
+        expect(await pool.governance()).to.eq(governance.address);
+        
+        // Fund the pool
+        await token.transfer(pool.address, TOKENS_IN_POOL);
+        await token.snapshot();
+        expect(await token.balanceOf(pool.address)).to.be.equal(TOKENS_IN_POOL);
+        expect(await pool.maxFlashLoan(token.address)).to.eq(TOKENS_IN_POOL);
+        expect(await pool.flashFee(token.address, 0)).to.eq(0);
 
-        await this.token.transfer(this.pool.address, TOKENS_IN_POOL);
-
-        expect(
-            await this.token.balanceOf(this.pool.address)
-        ).to.be.equal(TOKENS_IN_POOL);
     });
 
     /**
@@ -77,14 +81,14 @@ describe('[Challenge] Selfie', function () {
     });
 
     after(async function () {
-        /** SUCCESS CONDITIONS */
+        /** SUCCESS CONDITIONS - NO NEED TO CHANGE ANYTHING HERE */
 
-        // Attacker has taken all tokens from the pool
+        // Player has taken all tokens from the pool
         expect(
-            await this.token.balanceOf(attacker.address)
-        ).to.be.equal(TOKENS_IN_POOL);
+            await token.balanceOf(player.address)
+        ).to.be.equal(TOKENS_IN_POOL);        
         expect(
-            await this.token.balanceOf(this.pool.address)
-        ).to.be.equal('0');
+            await token.balanceOf(pool.address)
+        ).to.be.equal(0);
     });
 });

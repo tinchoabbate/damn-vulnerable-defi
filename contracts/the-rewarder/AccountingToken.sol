@@ -3,49 +3,43 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Snapshot.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import "solady/src/auth/OwnableRoles.sol";
 
 /**
  * @title AccountingToken
  * @author Damn Vulnerable DeFi (https://damnvulnerabledefi.xyz)
  * @notice A limited pseudo-ERC20 token to keep track of deposits and withdrawals
- *         with snapshotting capabilities
+ *         with snapshotting capabilities.
  */
-contract AccountingToken is ERC20Snapshot, AccessControl {
+contract AccountingToken is ERC20Snapshot, OwnableRoles {
+    uint256 public constant MINTER_ROLE = _ROLE_0;
+    uint256 public constant SNAPSHOT_ROLE = _ROLE_1;
+    uint256 public constant BURNER_ROLE = _ROLE_2;
 
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
-    bytes32 public constant SNAPSHOT_ROLE = keccak256("SNAPSHOT_ROLE");
-    bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
+    error NotImplemented();
 
     constructor() ERC20("rToken", "rTKN") {
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _setupRole(MINTER_ROLE, msg.sender);
-        _setupRole(SNAPSHOT_ROLE, msg.sender);
-        _setupRole(BURNER_ROLE, msg.sender);
+        _initializeOwner(msg.sender);
+        _grantRoles(msg.sender, MINTER_ROLE | SNAPSHOT_ROLE | BURNER_ROLE);
     }
 
-    function mint(address to, uint256 amount) external {
-        require(hasRole(MINTER_ROLE, msg.sender), "Forbidden");
+    function mint(address to, uint256 amount) external onlyRoles(MINTER_ROLE) {
         _mint(to, amount);
     }
 
-    function burn(address from, uint256 amount) external {
-        require(hasRole(BURNER_ROLE, msg.sender), "Forbidden");
+    function burn(address from, uint256 amount) external onlyRoles(BURNER_ROLE) {
         _burn(from, amount);
     }
 
-    function snapshot() external returns (uint256) {
-        require(hasRole(SNAPSHOT_ROLE, msg.sender), "Forbidden");
+    function snapshot() external onlyRoles(SNAPSHOT_ROLE) returns (uint256) {
         return _snapshot();
     }
 
-    // Do not need transfer of this token
     function _transfer(address, address, uint256) internal pure override {
-        revert("Not implemented");
+        revert NotImplemented();
     }
 
-    // Do not need allowance of this token
     function _approve(address, address, uint256) internal pure override {
-        revert("Not implemented");
+        revert NotImplemented();
     }
 }

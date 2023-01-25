@@ -1,56 +1,45 @@
 // SPDX-License-Identifier: MIT
-
 pragma solidity ^0.8.0;
 
-import "../unstoppable/UnstoppableLender.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/interfaces/IERC3156FlashBorrower.sol";
+import "solmate/src/auth/Owned.sol";
+import { UnstoppableVault, ERC20 } from "../unstoppable/UnstoppableVault.sol";
 
 /**
  * @title ReceiverUnstoppable
  * @author Damn Vulnerable DeFi (https://damnvulnerabledefi.xyz)
  */
-contract ReceiverUnstoppable {
+contract ReceiverUnstoppable is Owned, IERC3156FlashBorrower {
+    UnstoppableVault private immutable pool;
 
-    UnstoppableLender private immutable pool;
-    address private immutable owner;
+    error UnexpectedFlashLoan();
 
-    constructor(address poolAddress) {
-        pool = UnstoppableLender(poolAddress);
-        owner = msg.sender;
+    constructor(address poolAddress) Owned(msg.sender) {
+        pool = UnstoppableVault(poolAddress);
     }
 
-    // Pool will call this function during the flash loan
-    function receiveTokens(address tokenAddress, uint256 amount) external {
-        require(msg.sender == address(pool), "Sender must be pool");
-        // Return all tokens to the pool
-        require(IERC20(tokenAddress).transfer(msg.sender, amount), "Transfer of tokens failed");
+    function onFlashLoan(
+        address initiator,
+        address token,
+        uint256 amount,
+        uint256 fee,
+        bytes calldata
+    ) external returns (bytes32) {
+        if (initiator != address(this) || msg.sender != address(pool) || token != address(pool.asset()) || fee != 0)
+            revert UnexpectedFlashLoan();
+
+        ERC20(token).approve(address(pool), amount);
+
+        return keccak256("IERC3156FlashBorrower.onFlashLoan");
     }
 
-    function executeFlashLoan(uint256 amount) external {
-        require(msg.sender == owner, "Only owner can execute flash loan");
-        pool.flashLoan(amount);
-    }
-}
-
-contract SamReceiverUnstoppable {
-
-    UnstoppableLender private immutable pool;
-    address private immutable owner;
-
-    constructor(address poolAddress) {
-        pool = UnstoppableLender(poolAddress);
-        owner = msg.sender;
-    }
-
-    // Pool will call this function during the flash loan
-    function receiveTokens(address tokenAddress, uint256 amount) external {
-        require(msg.sender == address(pool), "Sender must be pool");
-        // Return all tokens to the pool
-        require(IERC20(tokenAddress).transfer(msg.sender, amount), "Transfer of tokens failed");
-    }
-
-    function executeFlashLoan(uint256 amount) external {
-        require(msg.sender == owner, "Only owner can execute flash loan");
-        pool.flashLoan(amount);
+    function executeFlashLoan(uint256 amount) external onlyOwner {
+        address asset = address(pool.asset());
+        pool.flashLoan(
+            this,
+            asset,
+            amount,
+            bytes("")
+        );
     }
 }

@@ -6,16 +6,14 @@ const {
 } = require('chai');
 
 describe('[Challenge] The rewarder', function () {
-
-    let deployer, alice, bob, charlie, david, attacker;
-    let users;
-
-    const TOKENS_IN_LENDER_POOL = ethers.utils.parseEther('1000000'); // 1 million tokens
+    const TOKENS_IN_LENDER_POOL = 1000000n * 10n ** 18n; // 1 million tokens
+    let users, deployer, alice, bob, charlie, david, player;
+    let liquidityToken, flashLoanPool, rewarderPool, rewardToken, accountingToken;
 
     before(async function () {
         /** SETUP SCENARIO - NO NEED TO CHANGE ANYTHING HERE */
 
-        [deployer, alice, bob, charlie, david, attacker] = await ethers.getSigners();
+        [deployer, alice, bob, charlie, david, player] = await ethers.getSigners();
         users = [alice, bob, charlie, david];
 
         const FlashLoanerPoolFactory = await ethers.getContractFactory('FlashLoanerPool', deployer);
@@ -24,40 +22,48 @@ describe('[Challenge] The rewarder', function () {
         const RewardTokenFactory = await ethers.getContractFactory('RewardToken', deployer);
         const AccountingTokenFactory = await ethers.getContractFactory('AccountingToken', deployer);
 
-        this.liquidityToken = await DamnValuableTokenFactory.deploy();
-        this.flashLoanPool = await FlashLoanerPoolFactory.deploy(this.liquidityToken.address);
+        liquidityToken = await DamnValuableTokenFactory.deploy();
+        flashLoanPool = await FlashLoanerPoolFactory.deploy(liquidityToken.address);
 
         // Set initial token balance of the pool offering flash loans
-        await this.liquidityToken.transfer(this.flashLoanPool.address, TOKENS_IN_LENDER_POOL);
+        await liquidityToken.transfer(flashLoanPool.address, TOKENS_IN_LENDER_POOL);
 
-        this.rewarderPool = await TheRewarderPoolFactory.deploy(this.liquidityToken.address);
-        this.rewardToken = await RewardTokenFactory.attach(await this.rewarderPool.rewardToken());
-        this.accountingToken = await AccountingTokenFactory.attach(await this.rewarderPool.accToken());
+        rewarderPool = await TheRewarderPoolFactory.deploy(liquidityToken.address);
+        rewardToken = RewardTokenFactory.attach(await rewarderPool.rewardToken());
+        accountingToken = AccountingTokenFactory.attach(await rewarderPool.accountingToken());
 
-        // Alice, Bob, Charlie and David deposit 100 tokens each
+        // Check roles in accounting token
+        expect(await accountingToken.owner()).to.eq(rewarderPool.address);
+        const minterRole = await accountingToken.MINTER_ROLE();
+        const snapshotRole = await accountingToken.SNAPSHOT_ROLE();
+        const burnerRole = await accountingToken.BURNER_ROLE();
+        expect(await accountingToken.hasAllRoles(rewarderPool.address, minterRole | snapshotRole | burnerRole)).to.be.true;
+
+        // Alice, Bob, Charlie and David deposit tokens
+        let depositAmount = 100n * 10n ** 18n; 
         for (let i = 0; i < users.length; i++) {
-            const amount = ethers.utils.parseEther('100');
-            await this.liquidityToken.transfer(users[i].address, amount);
-            await this.liquidityToken.connect(users[i]).approve(this.rewarderPool.address, amount);
-            await this.rewarderPool.connect(users[i]).deposit(amount);
+            await liquidityToken.transfer(users[i].address, depositAmount);
+            await liquidityToken.connect(users[i]).approve(rewarderPool.address, depositAmount);
+            await rewarderPool.connect(users[i]).deposit(depositAmount);
             expect(
-                await this.accountingToken.balanceOf(users[i].address)
-            ).to.be.eq(amount);
+                await accountingToken.balanceOf(users[i].address)
+            ).to.be.eq(depositAmount);
         }
-        expect(await this.accountingToken.totalSupply()).to.be.eq(ethers.utils.parseEther('400'));
-        expect(await this.rewardToken.totalSupply()).to.be.eq('0');
+        expect(await accountingToken.totalSupply()).to.be.eq(depositAmount * BigInt(users.length));
+        expect(await rewardToken.totalSupply()).to.be.eq(0);
 
         // Advance time 5 days so that depositors can get rewards
         await ethers.provider.send("evm_increaseTime", [5 * 24 * 60 * 60]); // 5 days
-
-        // Each depositor gets 25 reward tokens
+        
+        // Each depositor gets reward tokens
+        let rewardsInRound = await rewarderPool.REWARDS();
         for (let i = 0; i < users.length; i++) {
-            await this.rewarderPool.connect(users[i]).distributeRewards();
+            await rewarderPool.connect(users[i]).distributeRewards();
             expect(
-                await this.rewardToken.balanceOf(users[i].address)
-            ).to.be.eq(ethers.utils.parseEther('25'));
+                await rewardToken.balanceOf(users[i].address)
+            ).to.be.eq(rewardsInRound.div(users.length));
         }
-        expect(await this.rewardToken.totalSupply()).to.be.eq(ethers.utils.parseEther('100'));
+        expect(await rewardToken.totalSupply()).to.be.eq(rewardsInRound);
 
         // Attacker starts with zero DVT tokens in balance
         expect(await this.liquidityToken.balanceOf(attacker.address)).to.eq('0');
@@ -119,28 +125,30 @@ describe('[Challenge] The rewarder', function () {
 
         // Only one round should have taken place
         expect(
-            await this.rewarderPool.roundNumber()
-        ).to.be.eq('3');
+            await rewarderPool.roundNumber()
+        ).to.be.eq(3);
 
         // Users should get neglegible rewards this round
         for (let i = 0; i < users.length; i++) {
-            await this.rewarderPool.connect(users[i]).distributeRewards();
-            let rewards = await this.rewardToken.balanceOf(users[i].address);
-
-            // The difference between current and previous rewards balance should be lower than 0.01 tokens
-            let delta = rewards.sub(ethers.utils.parseEther('25'));
-            expect(delta).to.be.lt(ethers.utils.parseUnits('1', 16))
+            await rewarderPool.connect(users[i]).distributeRewards();
+            const userRewards = await rewardToken.balanceOf(users[i].address);
+            const delta = userRewards.sub((await rewarderPool.REWARDS()).div(users.length));
+            expect(delta).to.be.lt(10n ** 16n)
         }
+        
+        // Rewards must have been issued to the player account
+        expect(await rewardToken.totalSupply()).to.be.gt(await rewarderPool.REWARDS());
+        const playerRewards = await rewardToken.balanceOf(player.address);
+        expect(playerRewards).to.be.gt(0);
 
-        // Rewards must have been issued to the attacker account
-        expect(await this.rewardToken.totalSupply()).to.be.gt(ethers.utils.parseEther('100'));
-        let rewards = await this.rewardToken.balanceOf(attacker.address);
+        // The amount of rewards earned should be close to total available amount
+        const delta = (await rewarderPool.REWARDS()).sub(playerRewards);
+        expect(delta).to.be.lt(10n ** 17n);
 
-        // The amount of rewards earned should be really close to 100 tokens
-        let delta = ethers.utils.parseEther('100').sub(rewards);
-        expect(delta).to.be.lt(ethers.utils.parseUnits('1', 17));
-
-        // Attacker finishes with zero DVT tokens in balance
-        expect(await this.liquidityToken.balanceOf(attacker.address)).to.eq('0');
+        // Balance of DVT tokens in player and lending pool hasn't changed
+        expect(await liquidityToken.balanceOf(player.address)).to.eq(0);
+        expect(
+            await liquidityToken.balanceOf(flashLoanPool.address)
+        ).to.eq(TOKENS_IN_LENDER_POOL);
     });
 });

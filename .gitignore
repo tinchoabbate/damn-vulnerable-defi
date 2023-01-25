@@ -1,7 +1,9 @@
 node_modules
 build
 # contracts/attacker-contracts/*.sol
+contracts/player-contracts/*.sol
 *.solved.js
+*.solved.json
 cache
 .openzeppelin
 .vscode
