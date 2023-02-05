@@ -87,12 +87,8 @@ contract ClimberTimelock is ClimberTimelockBase {
         }
 
         bytes32 id = getOperationId(targets, values, dataElements, salt);
-<<<<<<< HEAD
-        for (uint8 i = 0; i < targets.length; i++) {
-=======
 
         for (uint8 i = 0; i < targets.length;) {
->>>>>>> a5d47759c2132175ed8b5b42a6ba28c1e436032d
             targets[i].functionCallWithValue(dataElements[i], values[i]);
             unchecked {
                 ++i;

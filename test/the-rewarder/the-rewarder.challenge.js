@@ -65,13 +65,11 @@ describe('[Challenge] The rewarder', function () {
         }
         expect(await rewardToken.totalSupply()).to.be.eq(rewardsInRound);
 
-        // Attacker starts with zero DVT tokens in balance
-        expect(await this.liquidityToken.balanceOf(attacker.address)).to.eq('0');
-
-        // Two rounds should have occurred so far
-        expect(
-            await this.rewarderPool.roundNumber()
-        ).to.be.eq('2');
+        // Player starts with zero DVT tokens in balance
+        expect(await liquidityToken.balanceOf(player.address)).to.eq(0);
+        
+        // Two rounds must have occurred so far
+        expect(await rewarderPool.roundNumber()).to.be.eq(2);
     });
 
     /**
@@ -106,13 +104,13 @@ describe('[Challenge] The rewarder', function () {
         /** CODE YOUR EXPLOIT HERE */
         console.log("***********************EXPLOIT****************")
 
-        const AttackRewardFactory = await ethers.getContractFactory("AttackReward", attacker);
+        const AttackRewardFactory = await ethers.getContractFactory("AttackReward", player);
         const attackContract = await AttackRewardFactory
         .deploy(
-            this.flashLoanPool.address, 
-            this.liquidityToken.address, 
-            this.rewarderPool.address,
-            attacker.address)
+            flashLoanPool.address, 
+            liquidityToken.address, 
+            rewarderPool.address,
+            player.address)
 
         await ethers.provider.send("evm_increaseTime", [5 * 24 * 60 * 60]); // 5 days
 

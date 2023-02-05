@@ -1,13 +1,15 @@
 import "../truster/TrusterLenderPool.sol";
+import "../DamnValuableToken.sol";
+
 
 contract AttackTruster {
     TrusterLenderPool trust;
-    IERC20 public immutable damnValuableToken;
+    DamnValuableToken public immutable damnValuableToken;
 
 
     constructor(address _trust, address tokenAddress) {
         trust = TrusterLenderPool(_trust);
-        damnValuableToken = IERC20(tokenAddress);
+        damnValuableToken = DamnValuableToken(tokenAddress);
 
     }
 

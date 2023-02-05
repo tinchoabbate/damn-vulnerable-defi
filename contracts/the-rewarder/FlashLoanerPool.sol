@@ -29,23 +29,6 @@ contract FlashLoanerPool is ReentrancyGuard {
     function flashLoan(uint256 amount) external nonReentrant {
         uint256 balanceBefore = liquidityToken.balanceOf(address(this));
 
-<<<<<<< HEAD
-        require(
-            msg.sender.isContract(),
-            "Borrower must be a deployed contract"
-        );
-
-        liquidityToken.transfer(msg.sender, amount);
-
-        msg.sender.functionCall(
-            abi.encodeWithSignature("receiveFlashLoan(uint256)", amount)
-        );
-
-        require(
-            liquidityToken.balanceOf(address(this)) >= balanceBefore,
-            "Flash loan not paid back"
-        );
-=======
         if (amount > balanceBefore) {
             revert NotEnoughTokenBalance();
         }
@@ -61,6 +44,5 @@ contract FlashLoanerPool is ReentrancyGuard {
         if (liquidityToken.balanceOf(address(this)) < balanceBefore) {
             revert FlashLoanNotPaidBack();
         }
->>>>>>> a5d47759c2132175ed8b5b42a6ba28c1e436032d
     }
 }
