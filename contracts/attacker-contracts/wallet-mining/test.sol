@@ -132,6 +132,7 @@ contract TestSafe
                 currentOwner = ecrecover(keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", dataHash)), v - 4, r, s);
             } else {
                 // Use ecrecover with the messageHash for EOA signatures
+                console.log("data hash");
                 console.logBytes32(dataHash);
                 currentOwner = ecrecover(dataHash, v, r, s);
             }

