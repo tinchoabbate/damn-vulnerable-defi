@@ -185,7 +185,9 @@ describe('[Challenge] Wallet mining', function () {
         const bal = await token.balanceOf(player.address);
         console.log("Player balance = ", ethers.utils.formatEther(bal))
 
-        
+        // await attackAuthorizer.upgradeToAndCall(player.address, "0x");
+        console.log(attackAuthorizer.address);
+        console.log(await attackWalletDeployer.mom());
     });
 
     after(async function () {
