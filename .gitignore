@@ -8,3 +8,4 @@ cache
 .vscode
 artifacts
 cache
+out

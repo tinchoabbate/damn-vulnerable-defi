@@ -6,7 +6,7 @@
     "url": "https://github.com/ESNJS/damn-vulnerable-defi.git"
   },
   "scripts": {
-    "unstoppable": "yarn hardhat test test/unstoppable/unstoppable.challenge.js",
+    "unstoppable": "forge test --match-contract ChallengeUnstoppable.sol",
     "truster": "yarn hardhat test test/truster/truster.challenge.js",
     "naive-receiver": "yarn hardhat test test/naive-receiver/naive-receiver.challenge.js",
     "side-entrance": "yarn hardhat test test/side-entrance/side-entrance.challenge.js",
@@ -21,16 +21,5 @@
     "wallet-mining": "yarn hardhat test test/wallet-mining/wallet-mining.challenge.js",
     "abi-smuggling": "yarn hardhat test test/abi-smuggling/abi-smuggling.challenge.js",
     "puppet-v3": "yarn hardhat test test/puppet-v3/puppet-v3.challenge.js"
-  },
-  "devDependencies": {
-    "@gnosis.pm/safe-contracts": "1.3.0",
-    "@openzeppelin/contracts": "4.7.1",
-    "@openzeppelin/contracts-upgradeable": "4.7.1",
-    "@uniswap/v2-core": "^1.0.1",
-    "@uniswap/v2-periphery": "1.1.0-beta.0",
-    "@uniswap/v3-core": "1.0.1",
-    "@uniswap/v3-periphery": "1.4.1",
-    "solady": "0.0.67",
-    "solmate": "6.6.1"
   }
 }
