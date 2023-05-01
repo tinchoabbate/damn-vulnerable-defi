@@ -30,8 +30,6 @@
     "@uniswap/v2-periphery": "1.1.0-beta.0",
     "@uniswap/v3-core": "1.0.1",
     "@uniswap/v3-periphery": "1.4.1",
-    "bignumber.js": "9.1.0",
-    "eth-permit": "0.2.3",
     "solady": "0.0.67",
     "solmate": "6.6.1"
   }

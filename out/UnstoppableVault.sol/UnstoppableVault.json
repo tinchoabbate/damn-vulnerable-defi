@@ -2161,7 +2161,7 @@
         29823
       ],
       "IERC3156FlashLender": [
-        31699
+        31703
       ],
       "Owned": [
         29883
@@ -2170,7 +2170,7 @@
         30970
       ],
       "SafeTransferLib": [
-        31784
+        31788
       ],
       "UnstoppableVault": [
         31423
@@ -2234,7 +2234,7 @@
               "name": "SafeTransferLib",
               "nodeType": "Identifier",
               "overloadedDeclarations": [],
-              "referencedDeclaration": 31784,
+              "referencedDeclaration": 31788,
               "src": "164:15:32",
               "typeDescriptions": {}
             },
@@ -2309,7 +2309,7 @@
               "name": "IERC3156FlashLender",
               "nodeType": "Identifier",
               "overloadedDeclarations": [],
-              "referencedDeclaration": 31699,
+              "referencedDeclaration": 31703,
               "src": "306:19:32",
               "typeDescriptions": {}
             },
@@ -2336,7 +2336,7 @@
                 "579:15:32"
               ],
               "nodeType": "IdentifierPath",
-              "referencedDeclaration": 31784,
+              "referencedDeclaration": 31788,
               "src": "579:15:32"
             },
             "typeName": {
@@ -3260,7 +3260,7 @@
               ]
             },
             "baseFunctions": [
-              31673
+              31677
             ],
             "documentation": {
               "id": 31183,
@@ -3756,7 +3756,7 @@
               ]
             },
             "baseFunctions": [
-              31683
+              31687
             ],
             "documentation": {
               "id": 31204,
@@ -5142,7 +5142,7 @@
                       "memberLocation": "3195:12:32",
                       "memberName": "safeTransfer",
                       "nodeType": "MemberAccess",
-                      "referencedDeclaration": 31763,
+                      "referencedDeclaration": 31767,
                       "src": "3181:26:32",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_internal_nonpayable$_t_contract$_ERC20_$30792_$_t_address_$_t_uint256_$returns$__$attached_to$_t_contract$_ERC20_$30792_$",
@@ -5702,7 +5702,7 @@
                       "memberLocation": "3576:16:32",
                       "memberName": "safeTransferFrom",
                       "nodeType": "MemberAccess",
-                      "referencedDeclaration": 31743,
+                      "referencedDeclaration": 31747,
                       "src": "3562:30:32",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_internal_nonpayable$_t_contract$_ERC20_$30792_$_t_address_$_t_address_$_t_uint256_$returns$__$attached_to$_t_contract$_ERC20_$30792_$",
@@ -5825,7 +5825,7 @@
                       "memberLocation": "3664:12:32",
                       "memberName": "safeTransfer",
                       "nodeType": "MemberAccess",
-                      "referencedDeclaration": 31763,
+                      "referencedDeclaration": 31767,
                       "src": "3650:26:32",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_internal_nonpayable$_t_contract$_ERC20_$30792_$_t_address_$_t_uint256_$returns$__$attached_to$_t_contract$_ERC20_$30792_$",
@@ -5877,7 +5877,7 @@
               ]
             },
             "baseFunctions": [
-              31698
+              31702
             ],
             "documentation": {
               "id": 31286,
@@ -6309,7 +6309,7 @@
                 "514:19:32"
               ],
               "nodeType": "IdentifierPath",
-              "referencedDeclaration": 31699,
+              "referencedDeclaration": 31703,
               "src": "514:19:32"
             },
             "id": 31111,
@@ -6378,7 +6378,7 @@
           30792,
           29883,
           30970,
-          31699
+          31703
         ],
         "name": "UnstoppableVault",
         "nameLocation": "494:16:32",

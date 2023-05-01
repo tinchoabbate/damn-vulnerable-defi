@@ -22,12 +22,6 @@ devDependencies:
   '@uniswap/v3-periphery':
     specifier: 1.4.1
     version: 1.4.1(hardhat@2.12.4)
-  bignumber.js:
-    specifier: 9.1.0
-    version: 9.1.0
-  eth-permit:
-    specifier: 0.2.3
-    version: 0.2.3
   solady:
     specifier: 0.0.67
     version: 0.0.67
@@ -946,10 +940,6 @@ packages:
     engines: {node: '>=14.0.0'}
     dev: true
 
-  /bignumber.js@9.1.0:
-    resolution: {integrity: sha512-4LwHK4nfDOraBCtst+wOWIHbu1vhvAPJK8g8nROd4iuc3PSEjWif/qwbkh8jwCJz6yDBvtU4KPynETgrfh7y3A==}
-    dev: true
-
   /binary-extensions@2.2.0:
     resolution: {integrity: sha512-jDctJ/IVQbZoJykoeHbhXpOlNBqGNcwXJKJog42E5HDPUwQTSdjCHdihjj0DlnheQ7blbT6dHOafNAiS8ooQKA==}
     engines: {node: '>=8'}
@@ -1275,12 +1265,6 @@ packages:
   /escape-string-regexp@4.0.0:
     resolution: {integrity: sha512-TtpcNJ3XAzx3Gq8sWRzJaVajRs0uVxA2YAkdb1jm2YkPz4G6egUFAyA3n5vtEIZefPk5Wa4UXbKuS5fKkJWdgA==}
     engines: {node: '>=10'}
-    dev: true
-
-  /eth-permit@0.2.3:
-    resolution: {integrity: sha512-d4tbiRQgbpdeJbdC9hdyT0SUJcJx28FIy3o2RxEAoeYI+zyYbNC0ZpdE6kxBK+7iY2payjHRE7rs7tr5EcOVLg==}
-    dependencies:
-      utf8: 3.0.0
     dev: true
 
   /ethereum-cryptography@0.1.3:
@@ -2374,10 +2358,6 @@ packages:
   /unpipe@1.0.0:
     resolution: {integrity: sha512-pjy2bYhSsufwWlKwPc+l3cN7+wuJlK6uz0YdJEOlQDbl6jo/YlPi4mb8agUkVC8BF7V8NuzeyPNqRksA3hztKQ==}
     engines: {node: '>= 0.8'}
-    dev: true
-
-  /utf8@3.0.0:
-    resolution: {integrity: sha512-E8VjFIQ/TyQgp+TZfS6l8yp/xWppSAHzidGiRrqe4bK4XP9pTRyKFgGJpO3SN7zdX4DeomTrwaseCHovfpFcqQ==}
     dev: true
 
   /util-deprecate@1.0.2:

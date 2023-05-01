@@ -1,14 +1,13 @@
+[fmt]
+line_length = 80
+tab_width = 2
+bracket_spacing = true
+int_types = "long"
+number_underscore = "thousands"
+
 [profile.default]
 src = "src"
 out = "out"
-libs = ["node_modules", "lib"]
-remappings = [
-    "@gnosis.pm/=node_modules/@gnosis.pm/",
-    "@openzeppelin/=node_modules/@openzeppelin/",
-    "@uniswap/=node_modules/@uniswap/",
-    "hardhat/=node_modules/hardhat/",
-    "solady/=node_modules/solady/",
-    "solmate/=node_modules/solmate/",
-]
+
 
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config
