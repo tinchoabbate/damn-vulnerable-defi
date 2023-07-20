@@ -16,7 +16,6 @@ contract FlashLoanReceiver is IERC3156FlashBorrower {
     address private constant ETH = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 
     error UnsupportedCurrency();
-
     constructor(address _pool) {
         pool = _pool;
     }
