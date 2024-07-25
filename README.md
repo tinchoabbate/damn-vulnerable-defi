@@ -9,7 +9,7 @@ Use Damn Vulnerable DeFi to:
 - Sharpen your auditing and bug-hunting skills.
 - Learn how to detect, test and fix flaws in realistic scenarios to become a security-minded developer.
 - Benchmark smart contract security tooling.
-- Create educational content on smart contract security with articles, tutorials, talks, courses, workshops, trainings, CTFs, etc. 
+- Create educational content on smart contract security with articles, tutorials, talks, courses, workshops, trainings, CTFs, etc.
 
 ## Install
 
@@ -33,7 +33,7 @@ To solve a challenge:
 2. Uncover the flaw(s) in the challenge's smart contracts.
 3. Code your solution in the corresponding test file.
 4. Try your solution with `forge test --mp test/<challenge-name>/<ChallengeName>.t.sol`.
-If the test passes, you've solved the challenge!
+   If the test passes, you've solved the challenge!
 
 Challenges may have more than one possible solution.
 
@@ -54,3 +54,24 @@ You can ask the community for help in [the discussions section](https://github.c
 All code, practices and patterns in this repository are DAMN VULNERABLE and for educational purposes only.
 
 DO NOT USE IN PRODUCTION.
+
+# Solve
+
+- [x] 1. [Unstoppable](https://www.damnvulnerabledefi.xyz/challenges/unstoppable/)
+- [ ] 2. [Naive receiver](https://www.damnvulnerabledefi.xyz/challenges/naive-receiver/)
+- [ ] 3. [Truster](https://www.damnvulnerabledefi.xyz/challenges/truster/)
+- [ ] 4. [ Side Entrance](https://www.damnvulnerabledefi.xyz/challenges/side-entrance/)
+- [ ] 5. [The Rewarder](https://www.damnvulnerabledefi.xyz/challenges/the-rewarder/)
+- [ ] 6. [Selfie](https://www.damnvulnerabledefi.xyz/challenges/selfie/)
+- [ ] 7. [Compromised](https://www.damnvulnerabledefi.xyz/challenges/compromised/)
+- [ ] 8. [Puppet](https://www.damnvulnerabledefi.xyz/challenges/puppet/)
+- [ ] 9. [Puppet V2](https://www.damnvulnerabledefi.xyz/challenges/puppet-v2/)
+- [ ] 10. [Free Rider](https://www.damnvulnerabledefi.xyz/challenges/free-rider/)
+- [ ] 11. [Backdoor](https://www.damnvulnerabledefi.xyz/challenges/backdoor/)
+- [ ] 12. [Climber](https://www.damnvulnerabledefi.xyz/challenges/climber/)
+- [ ] 13. [Wallet Mining](https://www.damnvulnerabledefi.xyz/challenges/wallet-mining/)
+- [ ] 14. [Puppet V3](https://www.damnvulnerabledefi.xyz/challenges/puppet-v3/)
+- [x] 15. [ABI Smuggling](https://www.damnvulnerabledefi.xyz/challenges/abi-smuggling/)
+- [ ] 16. [Shards](https://www.damnvulnerabledefi.xyz/challenges/shards/)
+- [ ] 17. [Curvy Puppet](https://www.damnvulnerabledefi.xyz/challenges/curvy-puppet/)
+- [ ] 18. [Withdrawal](https://www.damnvulnerabledefi.xyz/challenges/withdrawal/)
