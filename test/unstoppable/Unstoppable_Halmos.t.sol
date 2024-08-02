@@ -6,7 +6,8 @@ import {Test, console} from "forge-std/Test.sol";
 import {DamnValuableToken} from "../../src/DamnValuableToken.sol";
 import {UnstoppableVault, Owned} from "../../src/unstoppable/UnstoppableVault.sol";
 import {UnstoppableMonitor} from "../../src/unstoppable/UnstoppableMonitor.sol";
-import "./Attacker.sol";
+import "./AbstractAttacker.sol";
+import "forge-std/console.sol";
 
 contract UnstoppableChallenge is Test {
     address deployer = makeAddr("deployer");
@@ -21,7 +22,7 @@ contract UnstoppableChallenge is Test {
     UnstoppableMonitor public monitorContract;
 
     modifier checkSolvedByPlayer() {
-        vm.startPrank(player, player);
+        vm.startPrank(player);
         _;
         vm.stopPrank();
         _isSolved();
@@ -48,9 +49,11 @@ contract UnstoppableChallenge is Test {
         vault.transferOwnership(address(monitorContract));
 
         // Monitor checks it's possible to take a flash loan
-        vm.expectEmit();
-        emit UnstoppableMonitor.FlashLoanStatus(true);
-        monitorContract.checkFlashLoan(100e18);
+  //      monitorContract.checkFlashLoan(100e18);
+
+        console.logAddress(address(token));
+        console.logAddress(address(vault));
+        console.logAddress(address(monitorContract));
 
         vm.stopPrank();
     }
@@ -92,27 +95,23 @@ contract UnstoppableChallenge is Test {
     /**
      * CODE YOUR SOLUTION HERE
      */
-    function test_unstoppable() public checkSolvedByPlayer {
-        Attacker attacker = new Attacker();
-        token.transfer(address(attacker), INITIAL_PLAYER_TOKEN_BALANCE);
+    function check_unstoppable() public checkSolvedByPlayer {
+        AbstractAttacker attacker = new AbstractAttacker(); // Deploy attacker contract
+        token.transfer(address(attacker), INITIAL_PLAYER_TOKEN_BALANCE); // Transfer necessary resources to attacker
         attacker.add_known_address(address(token));
         attacker.add_known_address(address(vault));
         attacker.add_known_address(address(monitorContract));
-        attacker.attack();
+        attacker.attack(); // execute symbolic attack
     }
 
     /**
      * CHECKS SUCCESS CONDITIONS - DO NOT TOUCH
      */
     function _isSolved() private {
-        // Flashloan check must fail
         vm.prank(deployer);
-        vm.expectEmit();
-        emit UnstoppableMonitor.FlashLoanStatus(false);
+        address feeRecipientGot = vault.feeRecipient(); // Public variable reading
         monitorContract.checkFlashLoan(100e18);
 
-        // And now the monitor paused the vault and transferred ownership to deployer
-        assertTrue(vault.paused(), "Vault is not paused");
-        assertEq(vault.owner(), deployer, "Vault did not change owner");
+        assertFalse(vault.paused(), "Vault is not paused");
     }
 }
