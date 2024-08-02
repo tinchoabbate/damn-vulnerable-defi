@@ -7,6 +7,8 @@ import {DamnValuableToken} from "../../src/DamnValuableToken.sol";
 import {UnstoppableVault, Owned} from "../../src/unstoppable/UnstoppableVault.sol";
 import {UnstoppableMonitor} from "../../src/unstoppable/UnstoppableMonitor.sol";
 
+import "../../lib/halmos-cheatcodes/src/SymTest.sol";
+
 contract UnstoppableChallenge is Test {
     address deployer = makeAddr("deployer");
     address player = makeAddr("player");
@@ -91,7 +93,7 @@ contract UnstoppableChallenge is Test {
     /**
      * CODE YOUR SOLUTION HERE
      */
-    function test_unstoppable() public checkSolvedByPlayer {
+    function check_unstoppable() public checkSolvedByPlayer {
         
     }
 

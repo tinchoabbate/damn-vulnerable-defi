@@ -49,3 +49,6 @@
 	path = lib/permit2
 	url = https://github.com/Uniswap/permit2
 	ignore = dirty
+[submodule "lib/halmos-cheatcodes"]
+	path = lib/halmos-cheatcodes
+	url = https://github.com/a16z/halmos-cheatcodes
