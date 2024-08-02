@@ -140,7 +140,7 @@ function  _isSolved() private {
 	monitorContract.checkFlashLoan(100e18);
 	// Halmos should generate counterexample here.
 	// We expect it to find such a contract and data that sets the vault paused.
-	assertTrue(vault.paused(), "Vault is not paused"); 
+	assertFalse(vault.paused(), "Vault is not paused"); 
 }
 ```
 Execute it:
@@ -216,7 +216,7 @@ Counterexample:
     halmos_data_bytes_02 = 0xce96cb77000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 (100 bytes)
     ....
 ```
-A lot of TRASH counterexamples, that obviously just random calls to random contracts. These calls do not lead to vault pause. Actually, I don't know where did they come from :).
+A lot of TRASH counterexamples, that obviously just random calls to random contracts. These calls do not lead to flashloan error. Actually, I don't know where did they come from :).
 But, fortunately, I accidentally found the solution for this problem! I added some random public variable read in the start of "_isSolved()":
 ```javascript
 function  _isSolved() private {
@@ -246,11 +246,11 @@ means that this is the 0th contract from known contracts list (DamnValuableToken
 halmos_data_bytes_02 = 0xa9059cbb00000000000000000000000000000000000000000000000000000000aaaa000300000000000000000000000000000000000000000000000003c723168ff988000000000000000000000000000000000000000000000000000000000000000000 (100 bytes)
 ```
 is more interesting. First 4 bytes "a9059cbb" are token "transfer" selector
-Next 20 bytes 
+Next bytes 
 ```bash
 00000000000000000000000000000000000000000000000000000000aaaa0003
 ```
-is some address. This is tokens receiver address. We'll find out what address is it later.
+are some address. This is tokens receiver address. We'll find out what address is it later.
 And the third part 
 ```bash
 00000000000000000000000000000000000000000000000003c723168ff988000000000000000000000000000000000000000000000000000000000000000000
