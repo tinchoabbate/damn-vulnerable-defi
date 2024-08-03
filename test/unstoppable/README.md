@@ -289,7 +289,7 @@ Counterexample:
     halmos_contract_index_uint256_01 = 0x0000000000000000000000000000000000000000000000000000000000000000 (0)
     halmos_data_bytes_02 = 0xa9059cbb00000000000000000000000000000000000000000000000000000000aaaa000300000000000000000000000000000000000000000000000003c723168ff988000000000000000000000000000000000000000000000000000000000000000000 (100 bytes)
 ```
-So, it was "vault" contract. Attacker sends some tokens to vault contract and it should lead to contract pause.
+So, it was "vault" contract. Attacker sends some tokens to vault contract and it should lead to flashloan error.
 ## Using of counterexample 
 First of all, let's find "vault" contract address in forge. We'll use the same console logging here and this is what we got:
 ```bash
