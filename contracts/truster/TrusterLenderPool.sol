@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-
+//使用闪电贷+ERC20 内部的 approve 进行攻击
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/utils/Address.sol";
@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../DamnValuableToken.sol";
 
 /**
- * @title TrusterLenderPool
+ * @title TrusterLender
  * @author Damn Vulnerable DeFi (https://damnvulnerabledefi.xyz)
  */
 contract TrusterLenderPool is ReentrancyGuard {
@@ -31,6 +31,7 @@ contract TrusterLenderPool is ReentrancyGuard {
         token.transfer(borrower, amount);
         target.functionCall(data);
 
+        // @audit-issue 
         if (token.balanceOf(address(this)) < balanceBefore)
             revert RepayFailed();
 

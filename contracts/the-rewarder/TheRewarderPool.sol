@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+//没有考虑到 deposit 存款的时间问题，只是考虑到了周期问题，所以说可以直接存款并且取走奖励
 pragma solidity ^0.8.0;
 
 import "solady/src/utils/FixedPointMathLib.sol";
@@ -56,7 +57,7 @@ contract TheRewarderPool {
 
         accountingToken.mint(msg.sender, amount);
         distributeRewards();
-
+ 
         SafeTransferLib.safeTransferFrom(
             liquidityToken,
             msg.sender,
@@ -79,6 +80,7 @@ contract TheRewarderPool {
         uint256 amountDeposited = accountingToken.balanceOfAt(msg.sender, lastSnapshotIdForRewards);
 
         if (amountDeposited > 0 && totalDeposits > 0) {
+//这个地方没有考虑到 deposit 存款的时间问题，只是考虑到了周期问题，所以说可以直接存款并且取走奖励
             rewards = amountDeposited.mulDiv(REWARDS, totalDeposits);
             if (rewards > 0 && !_hasRetrievedReward(msg.sender)) {
                 rewardToken.mint(msg.sender, rewards);
