@@ -7,6 +7,7 @@ import {IERC3156FlashBorrower} from "@openzeppelin/contracts/interfaces/IERC3156
 import {FlashLoanReceiver} from "./FlashLoanReceiver.sol";
 import {Multicall} from "./Multicall.sol";
 import {WETH} from "solmate/tokens/WETH.sol";
+import "forge-std/console.sol";
 
 contract NaiveReceiverPool is Multicall, IERC3156FlashLender {
     uint256 private constant FIXED_FEE = 1e18; // not the cheapest flash loan
@@ -24,6 +25,7 @@ contract NaiveReceiverPool is Multicall, IERC3156FlashLender {
     error CallbackFailed();
 
     constructor(address _trustedForwarder, address payable _weth, address _feeReceiver) payable {
+        console.log("NaiveReceiverPool constructor");
         weth = WETH(_weth);
         trustedForwarder = _trustedForwarder;
         feeReceiver = _feeReceiver;
@@ -78,12 +80,22 @@ contract NaiveReceiverPool is Multicall, IERC3156FlashLender {
 
     function _deposit(uint256 amount) private {
         weth.deposit{value: amount}();
-
         deposits[_msgSender()] += amount;
         totalDeposits += amount;
     }
 
     function _msgSender() internal view override returns (address) {
+        console.logAddress(msg.sender);
+        console.logAddress(trustedForwarder);
+        console.log(msg.sender == trustedForwarder);
+        if (msg.sender == trustedForwarder)
+        {
+            console.log("equal");
+        }
+        else
+        {
+            console.log("not equal");
+        }
         if (msg.sender == trustedForwarder && msg.data.length >= 20) {
             return address(bytes20(msg.data[msg.data.length - 20:]));
         } else {
