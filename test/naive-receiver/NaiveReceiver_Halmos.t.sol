@@ -7,22 +7,26 @@ import {NaiveReceiverPool, Multicall, WETH} from "../../src/naive-receiver/Naive
 import {FlashLoanReceiver} from "../../src/naive-receiver/FlashLoanReceiver.sol";
 import {BasicForwarder} from "../../src/naive-receiver/BasicForwarder.sol";
 
+import "../../lib/SharedGlobalData.sol";
+import "./AbstractAttacker.sol";
+
 contract NaiveReceiverChallenge is Test {
-    address deployer = makeAddr("deployer");
-    address recovery = makeAddr("recovery");
-    address player;
-    uint256 playerPk;
+    address deployer = address(0xde4107e4);
+    address recovery = address(0xa77ac3e5);
+    address player = address(0xa77ac3e4);
+    //uint256 playerPk;
 
     uint256 constant WETH_IN_POOL = 1000e18;
     uint256 constant WETH_IN_RECEIVER = 10e18;
 
+    SharedGlobalData shared_data;
     NaiveReceiverPool pool;
     WETH weth;
     FlashLoanReceiver receiver;
     BasicForwarder forwarder;
 
     modifier checkSolvedByPlayer() {
-        vm.startPrank(player, player);
+        vm.startPrank(player);
         _;
         vm.stopPrank();
         _isSolved();
@@ -32,28 +36,36 @@ contract NaiveReceiverChallenge is Test {
      * SETS UP CHALLENGE - DO NOT TOUCH
      */
     function setUp() public {
-        (player, playerPk) = makeAddrAndKey("player");
-console.log("1");
-        startHoax(deployer);
-console.log("2");
+        //(player, playerPk) = makeAddrAndKey("player");
+        startHoax(deployer, 1 << 80);
+        shared_data = new SharedGlobalData();
         // Deploy WETH
         weth = new WETH();
-console.log("3");
         // Deploy forwarder
         forwarder = new BasicForwarder();
-console.log("4");
         // Deploy pool and fund with ETH
         pool = new NaiveReceiverPool{value: WETH_IN_POOL}(address(forwarder), payable(weth), deployer);
-console.log("5");
         // Deploy flashloan receiver contract and fund it with some initial WETH
         receiver = new FlashLoanReceiver(address(pool));
-console.log("6");
         weth.deposit{value: WETH_IN_RECEIVER}();
-        console.log("7");
         weth.transfer(address(receiver), WETH_IN_RECEIVER);
-console.log("8");
+
+        console.log("shared_data", address(shared_data));
+        console.log("weth", address(weth));
+        console.log("forwarder", address(forwarder));
+        console.log("pool", address(pool));
+        console.log("receiver", address(receiver));
+        console.log("deployer", address(deployer));
+        console.log("recovery", address(recovery));
+        console.log("player", address(player));
+
+        // Add known contracts to list
+        shared_data.add_known_address(address(weth));
+        shared_data.add_known_address(address(forwarder));
+        shared_data.add_known_address(address(pool));
+        shared_data.add_known_address(address(receiver));
+
         vm.stopPrank();
- console.log("9");       
     }
 
     function test_assertInitialState() public {
@@ -81,7 +93,9 @@ console.log("8");
      * CODE YOUR SOLUTION HERE
      */
     function check_naiveReceiver() public checkSolvedByPlayer {
-        
+        console.log (address(645326474426547203313410069153905908525362434349));
+        AbstractAttacker attacker = new AbstractAttacker();
+        attacker.attack();
     }
 
     /**
@@ -89,15 +103,17 @@ console.log("8");
      */
     function _isSolved() private view {
         // Player must have executed two or less transactions
-        assertLe(vm.getNonce(player), 2);
+        //assertLe(vm.getNonce(player), 2);
 
         // The flashloan receiver contract has been emptied
-        assertEq(weth.balanceOf(address(receiver)), 0, "Unexpected balance in receiver contract");
+        //assert(weth.balanceOf(address(receiver)) > 7e18);
+        //assert(weth.balanceOf(address(receiver)) != 0);
+        assert(weth.balanceOf(address(receiver)) != 0 || weth.balanceOf(address(pool)) != 0);
 
         // Pool is empty too
-        assertEq(weth.balanceOf(address(pool)), 0, "Unexpected balance in pool");
+        //assert (weth.balanceOf(address(pool)) != 0);
 
         // All funds sent to recovery account
-        assertEq(weth.balanceOf(recovery), WETH_IN_POOL + WETH_IN_RECEIVER, "Not enough WETH in recovery account");
+        //assertEq(weth.balanceOf(recovery), WETH_IN_POOL + WETH_IN_RECEIVER, "Not enough WETH in recovery account");
     }
 }

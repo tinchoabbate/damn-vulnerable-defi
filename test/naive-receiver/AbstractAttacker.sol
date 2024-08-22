@@ -4,28 +4,50 @@ pragma solidity =0.8.25;
 
 import "../../lib/halmos-cheatcodes/src/SymTest.sol";
 import "forge-std/Test.sol";
+import "../../lib/SharedGlobalData.sol";
+import {WETH} from "../../src/naive-receiver/NaiveReceiverPool.sol";
 
 contract AbstractAttacker is Test, SymTest {
-    mapping (uint256 => address) known_addresses;
-    uint256 known_next_index = 0;
+    SharedGlobalData shared_data = SharedGlobalData(address(0x00000000000000000000000000000000000000000000000000000000aaaa0002)); // We can hardcode it
+    WETH weth = WETH(payable(address(0x00000000000000000000000000000000000000000000000000000000aaaa0003)));
 
-    function add_known_address(address known) public {
-        known_addresses[known_next_index] = known;
-        known_next_index++;
+    function single_transaction(string memory data_id, string memory target_id) private {
+        bool success;
+        bytes memory data = svm.createBytes(100, data_id);
+        address target = svm.createAddress(target_id);
+        target = shared_data.get_known_address(target); // Get some concrete contract address
+        console.log("target is single ", target);
+        (success, ) = target.call(data);
+        if (!success) {
+            revert(); // attack function is guaranted to success
+        }
+    }
+
+    function similar_transactions(string memory data_id, string memory target_id) private {
+        bool success;
+        bytes memory data = svm.createBytes(100, data_id);
+        address target = svm.createAddress(target_id);
+        target = shared_data.get_known_address(target); // Get some concrete contract address
+        console.log("target is similar ", target);
+        //while (true) {
+        for (int i = 0; i < 10; i++) {
+            //bool is_end = svm.createBool('is_end'); 
+            //if (is_end == false)// finish sequence of attacking transactions
+            //{
+            //    break ;
+            //}
+            (success, ) = target.call(data);
+            if (!success) {
+                revert(); // attack function is guaranted to success
+            }
+        }
     }
 
 	function attack() public {
-        uint256 contract_index = svm.createUint256('contract_index');
-        vm.assume(contract_index < known_next_index);
-        for (uint256 i = 0; i < known_next_index; i++) { // brootforce is happening here
-            if (i == contract_index) {
-                address to_call = known_addresses[i]; // contract address is not symbolic now
-                bytes memory data = svm.createBytes(100, 'data');
-                (bool success, ) = to_call.call(data);
-                if (!success) {
-                    revert(); // attack function is guaranted to success
-                }
-            }
-        }
+        similar_transactions("data1", "target1");
+        single_transaction("data2", "target2");
+        //single_transaction("data2", "target2");
+        //single_transaction("data3", "target3");
+        //single_transaction("data4", "target4");
     }
 }

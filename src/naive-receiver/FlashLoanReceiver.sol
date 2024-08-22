@@ -4,6 +4,7 @@ pragma solidity =0.8.25;
 
 import {IERC3156FlashBorrower} from "@openzeppelin/contracts/interfaces/IERC3156FlashBorrower.sol";
 import {WETH, NaiveReceiverPool} from "./NaiveReceiverPool.sol";
+import "forge-std/console.sol";
 
 contract FlashLoanReceiver is IERC3156FlashBorrower {
     address private pool;
@@ -16,6 +17,7 @@ contract FlashLoanReceiver is IERC3156FlashBorrower {
         external
         returns (bytes32)
     {
+        console.log("enter onFlashLoan");
         assembly {
             // gas savings
             if iszero(eq(sload(pool.slot), caller())) {
