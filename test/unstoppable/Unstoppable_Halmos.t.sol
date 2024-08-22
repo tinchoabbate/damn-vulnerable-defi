@@ -9,10 +9,9 @@ import {UnstoppableMonitor} from "../../src/unstoppable/UnstoppableMonitor.sol";
 import "./AbstractAttacker.sol";
 import "forge-std/console.sol";
 
-contract UnstoppableChallenge is Test {
-    address deployer = makeAddr("deployer");
-    address player = makeAddr("player");
-    address monitor = makeAddr("monitor");
+contract UnstoppableChallengeHalmos is Test {
+    address deployer = address(0xde4107e4);
+    address player = address(0xa77ac3e4);
 
     uint256 constant TOKENS_IN_VAULT = 1_000_000e18;
     uint256 constant INITIAL_PLAYER_TOKEN_BALANCE = 10e18;
@@ -33,6 +32,7 @@ contract UnstoppableChallenge is Test {
      */
     function setUp() public {
         startHoax(deployer);
+
         // Deploy token and vault
         token = new DamnValuableToken();
         vault = new UnstoppableVault({_token: token, _owner: deployer, _feeRecipient: deployer});
@@ -49,11 +49,13 @@ contract UnstoppableChallenge is Test {
         vault.transferOwnership(address(monitorContract));
 
         // Monitor checks it's possible to take a flash loan
-  //      monitorContract.checkFlashLoan(100e18);
+        monitorContract.checkFlashLoan(100e18);
 
-        console.logAddress(address(token));
-        console.logAddress(address(vault));
-        console.logAddress(address(monitorContract));
+        console.log("token", address(token));
+        console.log("vault", address(vault));
+        console.log("monitor", address(monitorContract));
+        console.log("player", player);
+        console.log("deployer", deployer);
 
         vm.stopPrank();
     }
@@ -98,18 +100,26 @@ contract UnstoppableChallenge is Test {
     function check_unstoppable() public checkSolvedByPlayer {
         AbstractAttacker attacker = new AbstractAttacker(); // Deploy attacker contract
         token.transfer(address(attacker), INITIAL_PLAYER_TOKEN_BALANCE); // Transfer necessary resources to attacker
-        attacker.add_known_address(address(token));
-        attacker.add_known_address(address(vault));
-        attacker.add_known_address(address(monitorContract));
-        attacker.attack(); // execute symbolic attack
+
+         // execute symbolic attack
+        address[] memory known_addresses = new address[](3);
+        known_addresses[0] = address(token);
+        known_addresses[1] = address(vault);
+        known_addresses[2] = address(monitorContract);
+        attacker.attack(known_addresses);
     }
 
     /**
      * CHECKS SUCCESS CONDITIONS - DO NOT TOUCH
      */
     function _isSolved() private {
+        // Flashloan check must fail
         vm.prank(deployer);
-        address feeRecipientGot = vault.feeRecipient(); // Public variable reading
+
+        /// halmos does not support vm.expectEmit()
+        // vm.expectEmit();
+        // emit UnstoppableMonitor.FlashLoanStatus(false);
+
         monitorContract.checkFlashLoan(100e18);
 
         assertFalse(vault.paused(), "Vault is not paused");
