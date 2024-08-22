@@ -108,10 +108,10 @@ contract NaiveReceiverChallenge is Test {
         // The flashloan receiver contract has been emptied
         //assert(weth.balanceOf(address(receiver)) > 7e18);
         //assert(weth.balanceOf(address(receiver)) != 0);
-        assert(weth.balanceOf(address(receiver)) != 0 || weth.balanceOf(address(pool)) != 0);
+        //assert(weth.balanceOf(address(receiver)) != 0 || weth.balanceOf(address(pool)) != 0);
 
         // Pool is empty too
-        //assert (weth.balanceOf(address(pool)) != 0);
+        assert (weth.balanceOf(address(pool)) != 0);
 
         // All funds sent to recovery account
         //assertEq(weth.balanceOf(recovery), WETH_IN_POOL + WETH_IN_RECEIVER, "Not enough WETH in recovery account");

@@ -29,13 +29,7 @@ contract AbstractAttacker is Test, SymTest {
         address target = svm.createAddress(target_id);
         target = shared_data.get_known_address(target); // Get some concrete contract address
         console.log("target is similar ", target);
-        //while (true) {
         for (int i = 0; i < 10; i++) {
-            //bool is_end = svm.createBool('is_end'); 
-            //if (is_end == false)// finish sequence of attacking transactions
-            //{
-            //    break ;
-            //}
             (success, ) = target.call(data);
             if (!success) {
                 revert(); // attack function is guaranted to success
@@ -44,10 +38,7 @@ contract AbstractAttacker is Test, SymTest {
     }
 
 	function attack() public {
-        similar_transactions("data1", "target1");
+        //similar_transactions("data1", "target1");
         single_transaction("data2", "target2");
-        //single_transaction("data2", "target2");
-        //single_transaction("data3", "target3");
-        //single_transaction("data4", "target4");
     }
 }
