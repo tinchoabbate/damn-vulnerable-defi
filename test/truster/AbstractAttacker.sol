@@ -21,20 +21,6 @@ contract AbstractAttacker is Test, SymTest {
         }
     }
 
-    function similar_transactions(string memory data_id, string memory target_id) private {
-        bool success;
-        bytes memory data = svm.createBytes(100, data_id);
-        address target = svm.createAddress(target_id);
-        target = shared_data.get_known_address(target); // Get some concrete contract address
-        console.log("target is similar ", target);
-        for (int i = 0; i < 10; i++) {
-            (success, ) = target.call(data);
-            if (!success) {
-                revert(); // attack function is guaranted to success
-            }
-        }
-    }
-
 	function attack() public {
         single_transaction("data1", "target1");
         single_transaction("data2", "target2");
