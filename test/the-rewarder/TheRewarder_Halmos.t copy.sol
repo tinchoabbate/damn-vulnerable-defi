@@ -8,11 +8,14 @@ import {WETH} from "solmate/tokens/WETH.sol";
 import {TheRewarderDistributor, IERC20, Distribution, Claim} from "../../src/the-rewarder/TheRewarderDistributor.sol";
 import {DamnValuableToken} from "../../src/DamnValuableToken.sol";
 
+import "../../lib/SharedGlobalData.sol";
+import "./AbstractAttacker.sol";
+
 contract TheRewarderChallenge is Test {
-    address deployer = makeAddr("deployer");
-    address player = makeAddr("player");
-    address alice = makeAddr("alice");
-    address recovery = makeAddr("recovery");
+    address deployer = address(0xde4107e4);
+    address recovery = address(0xa77ac3e5);
+    address alice = address(0xa77ac3e3);
+    address player = address(0xa77ac3e4);
 
     uint256 constant BENEFICIARIES_AMOUNT = 1000;
     uint256 constant TOTAL_DVT_DISTRIBUTION_AMOUNT = 10 ether;
@@ -36,7 +39,7 @@ contract TheRewarderChallenge is Test {
     bytes32 wethRoot;
 
     modifier checkSolvedByPlayer() {
-        vm.startPrank(player, player);
+        vm.startPrank(player);
         _;
         vm.stopPrank();
         _isSolved();
@@ -46,16 +49,17 @@ contract TheRewarderChallenge is Test {
      * SETS UP CHALLENGE - DO NOT TOUCH
      */
     function setUp() public {
-        startHoax(deployer);
+        startHoax(deployer, 1 << 80);
 
         // Deploy tokens to be distributed
         dvt = new DamnValuableToken();
         weth = new WETH();
         weth.deposit{value: TOTAL_WETH_DISTRIBUTION_AMOUNT}();
-
+        console.log("0");
         // Calculate roots for DVT and WETH distributions
         bytes32[] memory dvtLeaves = _loadRewards("/test/the-rewarder/dvt-distribution.json");
         bytes32[] memory wethLeaves = _loadRewards("/test/the-rewarder/weth-distribution.json");
+        console.log("1");
         merkle = new Merkle();
         dvtRoot = merkle.getRoot(dvtLeaves);
         wethRoot = merkle.getRoot(wethLeaves);
@@ -147,7 +151,7 @@ contract TheRewarderChallenge is Test {
     /**
      * CODE YOUR SOLUTION HERE
      */
-    function test_theRewarder() public checkSolvedByPlayer {
+    function check_theRewarder() public checkSolvedByPlayer {
         
     }
 
@@ -179,12 +183,11 @@ contract TheRewarderChallenge is Test {
 
     // Utility function to read rewards file and load it into an array of leaves
     function _loadRewards(string memory path) private view returns (bytes32[] memory leaves) {
+        console.log("1");
+        vm.readFile(string.concat(vm.projectRoot(), path));
+        console.log("2");
         Reward[] memory rewards =
             abi.decode(vm.parseJson(vm.readFile(string.concat(vm.projectRoot(), path))), (Reward[]));
-        bytes memory ret = vm.parseJson(vm.readFile(string.concat(vm.projectRoot(), path)));
-        //rewards = abi.decode("", (Reward[]));
-        console.logBytes(ret);
-        //console.log(ret);
         assertEq(rewards.length, BENEFICIARIES_AMOUNT);
 
         leaves = new bytes32[](BENEFICIARIES_AMOUNT);
