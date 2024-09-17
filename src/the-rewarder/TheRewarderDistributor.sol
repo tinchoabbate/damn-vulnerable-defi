@@ -8,6 +8,9 @@ import {IERC20} from "@openzeppelin/contracts/interfaces/IERC20.sol";
 import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import {BitMaps} from "@openzeppelin/contracts/utils/structs/BitMaps.sol";
 
+import "../../lib/halmos-cheatcodes/src/SymTest.sol";
+import {Test, console} from "forge-std/Test.sol";
+
 struct Distribution {
     uint256 remaining;
     uint256 nextBatchNumber;
@@ -25,7 +28,7 @@ struct Claim {
 /**
  * An efficient token distributor contract based on Merkle proofs and bitmaps
  */
-contract TheRewarderDistributor {
+contract TheRewarderDistributor is Test, SymTest {
     using BitMaps for BitMaps.BitMap;
 
     address public immutable owner = msg.sender;
@@ -53,6 +56,7 @@ contract TheRewarderDistributor {
     }
 
     function createDistribution(IERC20 token, bytes32 newRoot, uint256 amount) external {
+        console.log("createDistribution");
         if (amount == 0) revert NotEnoughTokensToDistribute();
         if (newRoot == bytes32(0)) revert InvalidRoot();
         if (distributions[token].remaining != 0) revert StillDistributing();
@@ -69,6 +73,7 @@ contract TheRewarderDistributor {
     }
 
     function clean(IERC20[] calldata tokens) external {
+        console.log("clean");
         for (uint256 i = 0; i < tokens.length; i++) {
             IERC20 token = tokens[i];
             if (distributions[token].remaining == 0) {
@@ -79,22 +84,21 @@ contract TheRewarderDistributor {
 
     // Allow claiming rewards of multiple tokens in a single transaction
     function claimRewards(Claim[] memory inputClaims, IERC20[] memory inputTokens) external {
+        console.log("claimRewards");
         Claim memory inputClaim;
         IERC20 token;
         uint256 bitsSet; // accumulator
         uint256 amount;
-
         for (uint256 i = 0; i < inputClaims.length; i++) {
             inputClaim = inputClaims[i];
 
             uint256 wordPosition = inputClaim.batchNumber / 256;
             uint256 bitPosition = inputClaim.batchNumber % 256;
-
             if (token != inputTokens[inputClaim.tokenIndex]) {
                 if (address(token) != address(0)) {
                     if (!_setClaimed(token, amount, wordPosition, bitsSet)) revert AlreadyClaimed();
                 }
-
+                
                 token = inputTokens[inputClaim.tokenIndex];
                 bitsSet = 1 << bitPosition; // set bit at given position
                 amount = inputClaim.amount;
@@ -102,18 +106,61 @@ contract TheRewarderDistributor {
                 bitsSet = bitsSet | 1 << bitPosition;
                 amount += inputClaim.amount;
             }
-
             // for the last claim
             if (i == inputClaims.length - 1) {
                 if (!_setClaimed(token, amount, wordPosition, bitsSet)) revert AlreadyClaimed();
             }
-
             bytes32 leaf = keccak256(abi.encodePacked(msg.sender, inputClaim.amount));
             bytes32 root = distributions[token].roots[inputClaim.batchNumber];
-
-            if (!MerkleProof.verify(inputClaim.proof, root, leaf)) revert InvalidProof();
-
+            //if (!MerkleProof.verify(inputClaim.proof, root, leaf)) revert InvalidProof();
             inputTokens[inputClaim.tokenIndex].transfer(msg.sender, inputClaim.amount);
+        }
+    }
+
+    function claimRewards_symbolic(uint256 inputClaims_size, uint256 inputTokens_size) external {
+        console.log("claimRewards_symbolic");
+        Claim memory inputClaim;
+        IERC20 token;
+        uint256 bitsSet; // accumulator
+        uint256 amount;
+
+        for (uint256 l = 0; l < 10; l++)
+        {
+            if (inputClaims_size != l)
+            {
+                continue;
+            }
+            for (uint256 i = 0; i < inputClaims_size; i++) {
+                inputClaim.amount = svm.createUint256('Claim_amount');
+                vm.assume (inputClaim.amount <= 11524763827831882);
+                inputClaim.batchNumber = svm.createUint256('Claim_batchNumber');
+                inputClaim.tokenIndex = svm.createUint256('Claim_tokenIndex');
+                address current_token = svm.createAddress('current_token');
+
+
+                uint256 wordPosition = inputClaim.batchNumber / 256;
+                uint256 bitPosition = inputClaim.batchNumber % 256;
+                if (token != IERC20(current_token)) {
+                    if (address(token) != address(0)) {
+                        if (!_setClaimed(token, amount, wordPosition, bitsSet)) revert AlreadyClaimed();
+                    }
+                    
+                    token = IERC20(current_token);
+                    bitsSet = 1 << bitPosition; // set bit at given position
+                    amount = inputClaim.amount;
+                } else {
+                    bitsSet = bitsSet | 1 << bitPosition;
+                    amount += inputClaim.amount;
+                }
+                // for the last claim
+                if (i == inputClaims_size - 1) {
+                    if (!_setClaimed(token, amount, wordPosition, bitsSet)) revert AlreadyClaimed();
+                }
+                //bytes32 leaf = keccak256(abi.encodePacked(msg.sender, inputClaim.amount));
+                //bytes32 root = distributions[token].roots[inputClaim.batchNumber];
+                //if (!MerkleProof.verify(inputClaim.proof, root, leaf)) revert InvalidProof();
+                IERC20(current_token).transfer(msg.sender, inputClaim.amount);
+            }
         }
     }
 

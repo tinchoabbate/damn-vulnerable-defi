@@ -38,7 +38,7 @@ contract AbstractAttacker is Test, SymTest {
     }
 
 	function attack() public {
-        //similar_transactions("data1", "target1");
-        single_transaction("data2", "target2");
+        console.log("attack start");
+        single_transaction("data1", "target1");
     }
 }

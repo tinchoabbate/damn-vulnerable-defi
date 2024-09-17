@@ -20,10 +20,8 @@ contract SharedGlobalData is SymTest {
     {
         if (data_id == data_list_size)
         {
-            console.log ("get_known_data 1");
             known_data[data_id] = svm.createBytes(100, 'known_data');
             data_list_size++;
-            console.log ("get_known_data 2");
             return known_data[data_id];
         }
         for (uint256 i = 0; i < data_list_size; i++)

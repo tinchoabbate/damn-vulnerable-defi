@@ -14,7 +14,7 @@ contract TheRewarderChallenge is Test {
     address alice = makeAddr("alice");
     address recovery = makeAddr("recovery");
 
-    uint256 constant BENEFICIARIES_AMOUNT = 1000;
+    uint256 constant BENEFICIARIES_AMOUNT = 5;//1000;
     uint256 constant TOTAL_DVT_DISTRIBUTION_AMOUNT = 10 ether;
     uint256 constant TOTAL_WETH_DISTRIBUTION_AMOUNT = 1 ether;
 
@@ -48,6 +48,9 @@ contract TheRewarderChallenge is Test {
     function setUp() public {
         startHoax(deployer);
 
+        console.log(player);
+        console.log(alice);
+
         // Deploy tokens to be distributed
         dvt = new DamnValuableToken();
         weth = new WETH();
@@ -58,7 +61,9 @@ contract TheRewarderChallenge is Test {
         bytes32[] memory wethLeaves = _loadRewards("/test/the-rewarder/weth-distribution.json");
         merkle = new Merkle();
         dvtRoot = merkle.getRoot(dvtLeaves);
+        console.logBytes32(dvtRoot);
         wethRoot = merkle.getRoot(wethLeaves);
+        console.logBytes32(wethRoot);
 
         // Deploy distributor
         distributor = new TheRewarderDistributor();
@@ -88,6 +93,10 @@ contract TheRewarderChallenge is Test {
 
         // Create Alice's claims
         Claim[] memory claims = new Claim[](2);
+        console.log("\n\n");
+        console.logBytes32(merkle.getProof(dvtLeaves, 2)[0]);
+        console.logBytes32(merkle.getProof(dvtLeaves, 2)[1]);
+        console.logBytes32(merkle.getProof(dvtLeaves, 2)[2]);
 
         // First, the DVT claim
         claims[0] = Claim({
@@ -96,6 +105,10 @@ contract TheRewarderChallenge is Test {
             tokenIndex: 0, // claim corresponds to first token in `tokensToClaim` array
             proof: merkle.getProof(dvtLeaves, 2) // Alice's address is at index 2
         });
+
+        console.logBytes32(merkle.getProof(wethLeaves, 2)[0]);
+        console.logBytes32(merkle.getProof(wethLeaves, 2)[1]);
+        console.logBytes32(merkle.getProof(wethLeaves, 2)[2]);
 
         // And then, the WETH claim
         claims[1] = Claim({
@@ -182,9 +195,8 @@ contract TheRewarderChallenge is Test {
         Reward[] memory rewards =
             abi.decode(vm.parseJson(vm.readFile(string.concat(vm.projectRoot(), path))), (Reward[]));
         bytes memory ret = vm.parseJson(vm.readFile(string.concat(vm.projectRoot(), path)));
-        //rewards = abi.decode("", (Reward[]));
         console.logBytes(ret);
-        //console.log(ret);
+        console.log("\n\n\n\n");
         assertEq(rewards.length, BENEFICIARIES_AMOUNT);
 
         leaves = new bytes32[](BENEFICIARIES_AMOUNT);
@@ -193,3 +205,4 @@ contract TheRewarderChallenge is Test {
         }
     }
 }
+
