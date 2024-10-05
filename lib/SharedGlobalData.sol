@@ -9,7 +9,13 @@ contract SharedGlobalData is SymTest {
     mapping (uint256 => bytes) known_data;
     uint256 data_list_size = 0;
     mapping (uint256 => address) known_addresses;
+    mapping (uint256 => string) known_names;
     uint256 addresses_list_size = 0;
+
+    function add_known_address_with_name(address known, string memory name) public {
+        known_names[addresses_list_size] = name;
+        add_known_address(known);
+    }
 
     function add_known_address(address known) public {
         known_addresses[addresses_list_size] = known;
@@ -32,6 +38,19 @@ contract SharedGlobalData is SymTest {
             }
         }
         revert();
+    }
+
+    function get_known_address_with_name(address addr) public view returns (address ret, string memory name){
+        for (uint256 i = 0; i < addresses_list_size; i++)
+        {
+            if (addr == known_addresses[i])
+            {
+                ret = known_addresses[i];
+                name = known_names[i];
+                return (ret, name);
+            }
+        }
+        revert (); //some address should be returned
     }
 
     function get_known_address(address addr) public view returns (address ret){
