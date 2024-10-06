@@ -8,11 +8,12 @@ import "../../lib/SharedGlobalData.sol";
 import {IERC3156FlashBorrower} from "@openzeppelin/contracts/interfaces/IERC3156FlashBorrower.sol";
 import {DamnValuableVotes} from "../../src/DamnValuableVotes.sol";
 
+import {DamnValuableToken} from "../../src/DamnValuableToken.sol";
+import {IUniswapV1Exchange} from "../../src/puppet/IUniswapV1Exchange.sol";
 
 contract AbstractAttacker is Test, SymTest, IERC3156FlashBorrower {
     bool anti_recursion = false;
-    SharedGlobalData shared_data = SharedGlobalData(address(0x00000000000000000000000000000000000000000000000000000000aaaa0002)); // We can hardcode it
-    DamnValuableVotes token_votes = DamnValuableVotes(address(0x00000000000000000000000000000000000000000000000000000000aaaa0003)); // We can hardcode it
+    SharedGlobalData shared_data = SharedGlobalData(address(0x00000000000000000000000000000000000000000000000000000000aaaa0004)); // We can hardcode it
     function onFlashLoan(
         address initiator,
         address token,
@@ -60,24 +61,19 @@ contract AbstractAttacker is Test, SymTest, IERC3156FlashBorrower {
         console.log("target is single ", target);
         console.log("name is single ", name);
         bytes memory data = svm.createCalldata(name);
-        (success, ) = target.call(data);
+        uint256 val = svm.createUint256("val");
+        (success, ) = target.call{value: val}(data);
         if (!success) {
             revert(); // attack function is guaranted to success
         }
     }
 
 	function attack() public {
-        if (anti_recursion == true)
-        {
-            revert();
-        }
-        anti_recursion = true;
-        token_votes.approve(address(0x00000000000000000000000000000000000000000000000000000000aaaa0005), 2**256 - 1); // unlimited approve for pool
-        token_votes.delegate(address(this)); // delegate
+        DamnValuableToken token = DamnValuableToken(address(0x00000000000000000000000000000000000000000000000000000000aaaa0005));
+        IUniswapV1Exchange exchange = IUniswapV1Exchange(address(0x00000000000000000000000000000000000000000000000000000000aaaa0006));
         console.log("attack start");
+        token.approve(address(exchange), 2**256-1);
         single_tx_with_calldata("target_1");
-        vm.warp(block.timestamp + 2 days);
         single_tx_with_calldata("target_2");
-        anti_recursion = false;
     }
 }
