@@ -46,6 +46,15 @@ contract PuppetV2Challenge is Test {
         token = new DamnValuableToken();
         weth = new WETH();
 
+        console.log("1");
+        string memory path = string.concat(vm.projectRoot(), "/builds/uniswap/UniswapV2Factory.json");
+        bytes memory got_code = vm.getCode(path);
+        bytes memory packed = abi.encodePacked(got_code, abi.encode(address(0)));
+        console.logBytes(got_code);
+        console.log("2");
+        path = string.concat(vm.projectRoot(), "/builds/uniswap/UniswapV2Router02.json");
+        got_code = vm.getCode(path);
+        console.logBytes(got_code);
         // Deploy Uniswap V2 Factory and Router
         uniswapV2Factory = IUniswapV2Factory(
             deployCode(string.concat(vm.projectRoot(), "/builds/uniswap/UniswapV2Factory.json"), abi.encode(address(0)))
