@@ -1,5 +1,13 @@
 # Changelog
 
+## v4.0.1
+
+- Updated README instructions to include `--isolate` mode (https://github.com/theredguild/damn-vulnerable-defi/pull/77)
+- Fixed typo in typehash (https://github.com/theredguild/damn-vulnerable-defi/pull/75)
+- Fixed typo in challenge prompt (https://github.com/theredguild/damn-vulnerable-defi/pull/79)
+- Removed unused state variable in test (https://github.com/theredguild/damn-vulnerable-defi/issues/76)
+- Updated Foundry version in devcontainer
+
 ## v4.0.0
 
 - Full migration from Hardhat to Foundry.
