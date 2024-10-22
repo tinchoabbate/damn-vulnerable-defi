@@ -10,7 +10,6 @@ import {UnstoppableMonitor} from "../../src/unstoppable/UnstoppableMonitor.sol";
 contract UnstoppableChallenge is Test {
     address deployer = makeAddr("deployer");
     address player = makeAddr("player");
-    address monitor = makeAddr("monitor");
 
     uint256 constant TOKENS_IN_VAULT = 1_000_000e18;
     uint256 constant INITIAL_PLAYER_TOKEN_BALANCE = 10e18;
