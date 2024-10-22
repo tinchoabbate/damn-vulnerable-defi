@@ -27,6 +27,7 @@ RUN pipx install solc-select
 
 # Foundry at specific version
 RUN curl -L https://foundry.paradigm.xyz | zsh
+
 RUN foundryup --version nightly-2044faec64f99a21f0e5f0094458a973612d0712
 
 # Clean up
