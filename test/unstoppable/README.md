@@ -268,7 +268,8 @@ contract Attacker is Test, SymTest {
     }
 }
 ```
-This is an exact copy of SymbolicAttacker, except we've replaced the symbolic values with concrete values ​​from the counterexample.
+This is an exact copy of SymbolicAttacker, except we've replaced the symbolic values with concrete values ​​from the counterexample. 
+And of course, we replaced the addresses from Halmos with Foundry addresses.
 And test_unstoppable():
 ```javascript
 function test_unstoppable() public checkSolvedByPlayer {
@@ -326,8 +327,8 @@ sender=0x44E97aF4418b7a17AABD8090bEA0A471a366305C addr=[src/DamnValuableToken.so
 ```
 This method also quickly and simply found the attacking transaction.
 ## Conclusions
-1. We have proven that Halmos is capable of quite simply solving single-transaction CTF problems in a fairly intuitive way
-2. Counterexamples analysis may be tricky because of hard-coded addresses and parameters. We can't just put counterexample in initial code and expect it will behave as expected
+1. We proved that Halmos can be used to solve CTF problems. We had a simple one-transaction challenge and Halmos solved it in a rather intuitive and understandable way
+2. Analyzing counterexamples can be tricky due to hard-coded addresses and parameters. We can't just put a counterexample in the source code and expect it to behave like it does inside Halmos
 3. When we try to migrate a normal Foundry test to Halmos, we need to be careful not to use unsupported functionality from Foundry, or tricky cheat codes like makeAddr()
 4. Getting into recursion should be avoided as it can lead to garbage counterexamples or truncate code coverage
-5. In the case of fairly simple problems with a trivial solution, the solution through fuzzing looks and is much simpler: writing it took ten times less time and effort than solving through Halmos. However, **SPOILER ALERT**, Halmos will show his power in the following less trivial challenges
+5. In the case of fairly simple problems with a trivial solution, the solution through fuzzing looks and is much simpler: writing it took ten times less time and effort than solving through Halmos. However, **!!!SPOILER ALERT!!!**, Halmos will show his power in the following less trivial challenges
