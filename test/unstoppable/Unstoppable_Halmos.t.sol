@@ -6,12 +6,11 @@ import {Test, console} from "forge-std/Test.sol";
 import {DamnValuableToken} from "../../src/DamnValuableToken.sol";
 import {UnstoppableVault, Owned} from "../../src/unstoppable/UnstoppableVault.sol";
 import {UnstoppableMonitor} from "../../src/unstoppable/UnstoppableMonitor.sol";
-import "./AbstractAttacker.sol";
-import "forge-std/console.sol";
+import "./SymbolicAttacker.sol";
 
-contract UnstoppableChallengeHalmos is Test {
-    address deployer = address(0xde4107e4);
-    address player = address(0xa77ac3e4);
+contract UnstoppableChallenge is Test {
+    address deployer = address(0xcafe0000);
+    address player = address(0xcafe0001);
 
     uint256 constant TOKENS_IN_VAULT = 1_000_000e18;
     uint256 constant INITIAL_PLAYER_TOKEN_BALANCE = 10e18;
@@ -32,7 +31,6 @@ contract UnstoppableChallengeHalmos is Test {
      */
     function setUp() public {
         startHoax(deployer);
-
         // Deploy token and vault
         token = new DamnValuableToken();
         vault = new UnstoppableVault({_token: token, _owner: deployer, _feeRecipient: deployer});
@@ -48,14 +46,8 @@ contract UnstoppableChallengeHalmos is Test {
         monitorContract = new UnstoppableMonitor(address(vault));
         vault.transferOwnership(address(monitorContract));
 
-        // Monitor checks it's possible to take a flash loan
+        emit UnstoppableMonitor.FlashLoanStatus(true);
         monitorContract.checkFlashLoan(100e18);
-
-        console.log("token", address(token));
-        console.log("vault", address(vault));
-        console.log("monitor", address(monitorContract));
-        console.log("player", player);
-        console.log("deployer", deployer);
 
         vm.stopPrank();
     }
@@ -97,31 +89,24 @@ contract UnstoppableChallengeHalmos is Test {
     /**
      * CODE YOUR SOLUTION HERE
      */
-    function check_unstoppable() public checkSolvedByPlayer {
-        AbstractAttacker attacker = new AbstractAttacker(); // Deploy attacker contract
+    function check_unstoppable() public  checkSolvedByPlayer {
+        SymbolicAttacker attacker =  new SymbolicAttacker(); // Deploy attacker contract
+        console.log("token\t", address(token));
+        console.log("vault\t", address(vault));
+        console.log("monitor\t", address(monitorContract));
+        console.log("attacker\t", address(attacker));
         token.transfer(address(attacker), INITIAL_PLAYER_TOKEN_BALANCE); // Transfer necessary resources to attacker
-
-         // execute symbolic attack
-        address[] memory known_addresses = new address[](3);
-        known_addresses[0] = address(token);
-        known_addresses[1] = address(vault);
-        known_addresses[2] = address(monitorContract);
-        attacker.attack(known_addresses);
+        attacker.attack(); // execute symbolic attack
     }
 
     /**
      * CHECKS SUCCESS CONDITIONS - DO NOT TOUCH
      */
     function _isSolved() private {
-        // Flashloan check must fail
         vm.prank(deployer);
-
-        /// halmos does not support vm.expectEmit()
-        // vm.expectEmit();
-        // emit UnstoppableMonitor.FlashLoanStatus(false);
-
         monitorContract.checkFlashLoan(100e18);
-
-        assertFalse(vault.paused(), "Vault is not paused");
+        // Halmos should generate counterexample here.
+        // We expect it to find such a contract and data that sets the vault paused.
+        assert(vault.paused() == false || vault.owner() != deployer);
     }
 }

@@ -14,3 +14,5 @@ ignored_warnings_from = [
     "src/curvy-puppet/ICryptoSwapPool.sol"
 ]
 bytecode_hash = "none"
+[fuzz]
+runs = 1000

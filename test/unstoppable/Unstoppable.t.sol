@@ -95,9 +95,6 @@ contract UnstoppableChallenge is Test {
     function test_unstoppable() public checkSolvedByPlayer {
         Attacker attacker = new Attacker();
         token.transfer(address(attacker), INITIAL_PLAYER_TOKEN_BALANCE);
-        attacker.add_known_address(address(token));
-        attacker.add_known_address(address(vault));
-        attacker.add_known_address(address(monitorContract));
         attacker.attack();
     }
 
