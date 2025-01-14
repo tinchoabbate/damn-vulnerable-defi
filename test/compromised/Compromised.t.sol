@@ -60,7 +60,7 @@ contract CompromisedChallenge is Test {
     }
 
     /**
-     * CODE YOUR SOLUTION HERE
+     * VALIDATES INITIAL CONDITIONS - DO NOT TOUCH
      */
     function test_assertInitialState() public view {
         for (uint256 i = 0; i < sources.length; i++) {
